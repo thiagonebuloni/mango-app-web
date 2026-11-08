@@ -1,6 +1,7 @@
 // Camada de persistência IndexedDB (substitui o sqflite/SQLite do Flutter).
 // Usa a biblioteca `idb` (promissória sobre IndexedDB).
 import { deleteDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { cartaoChaveEstavel } from '../types/models';
 import type {
   Expense,
   ExpenseInput,
@@ -11,6 +12,7 @@ import type {
   TentativasBloqueio,
   Category,
 } from '../types/models';
+import type { CsvExpenseInput } from './csv-backup';
 import { formatMoney } from '../utils/format';
 
 const DB_NAME = 'mango_app_web';
@@ -170,6 +172,47 @@ export async function insertExpensesBatch(expenses: ExpenseInput[]): Promise<voi
   for (const e of expenses) {
     await tx.store.add({
       ...e,
+      criadoEm: agora,
+      atualizadoEm: agora,
+    });
+  }
+  await tx.done;
+}
+
+export async function appendCsvBackupData(
+  expenses: CsvExpenseInput[],
+  cards: CartaoCreditoInput[],
+): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction(['expenses', 'cartoes'], 'readwrite');
+  const cardStore = tx.objectStore('cartoes');
+  const existingCards = await cardStore.getAll();
+  const cardIdsByKey = new Map(
+    existingCards.flatMap((card) => card.id === undefined
+      ? []
+      : [[cartaoChaveEstavel(card), card.id] as const]),
+  );
+  const cardIdsByName = new Map<string, number>(
+    existingCards.flatMap((card) => card.id === undefined ? [] : [[card.nome, card.id] as const]),
+  );
+
+  for (const card of cards) {
+    const key = cartaoChaveEstavel(card);
+    let id = cardIdsByKey.get(key);
+    if (id === undefined) {
+      id = await cardStore.add(card);
+      cardIdsByKey.set(key, id);
+    }
+    cardIdsByName.set(card.nome, id);
+  }
+
+  const expenseStore = tx.objectStore('expenses');
+  const agora = new Date().toISOString();
+  for (const { cartaoNome, ...expense } of expenses) {
+    const cartaoId = cartaoNome ? cardIdsByName.get(cartaoNome) : undefined;
+    await expenseStore.add({
+      ...expense,
+      cartaoId: cartaoId ?? expense.cartaoId,
       criadoEm: agora,
       atualizadoEm: agora,
     });

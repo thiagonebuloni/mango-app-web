@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ChartNoAxesCombined,
   CreditCard,
+  FileDown,
+  FileUp,
   House,
   LogOut,
   Palette,
@@ -16,6 +18,7 @@ import {
 import { useMangoStore } from '../store/useStore';
 import { useI18n } from '../utils/i18n';
 import { supabase, supabaseConfigured } from '../services/supabase';
+import { exportMangoCsv, parseMangoCsv, type MangoCsvImport } from '../services/csv-backup';
 
 const ROTAS_PRINCIPAIS = ['/', '/relatorios', '/cartoes', '/perfil', '/landing'];
 
@@ -27,17 +30,87 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { perfil, apagarConta } = useMangoStore();
+  const { perfil, despesas, cartoes, apagarConta, importarBackupCsv } = useMangoStore();
   const { t } = useI18n();
+  const csvInputRef = useRef<HTMLInputElement>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deletePhrase, setDeletePhrase] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [csvFeedback, setCsvFeedback] = useState<{ message: string; error: boolean } | null>(null);
+  const [pendingImport, setPendingImport] = useState<{ filename: string; data: MangoCsvImport } | null>(null);
+  const [importingCsv, setImportingCsv] = useState(false);
 
   if (!ROTAS_PRINCIPAIS.includes(location.pathname)) return null;
 
   const avatar = perfil?.avatar ?? '';
   const avatarEhImagem = avatar.length > 0 && !/^[\p{Emoji}\s]+$/u.test(avatar);
+  const exportarCsv = () => {
+    try {
+      const csv = exportMangoCsv(despesas, cartoes, perfil);
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `mango_backup_${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      setCsvFeedback({ message: t('Backup CSV exportado.'), error: false });
+      setPendingImport(null);
+    } catch (error) {
+      setCsvFeedback({
+        message: error instanceof Error ? t(error.message) : String(error),
+        error: true,
+      });
+    }
+  };
+  const selecionarCsv = async (file: File | undefined) => {
+    if (!file) return;
+    setCsvFeedback(null);
+    try {
+      if (file.size > 16 * 1024 * 1024) {
+        throw new Error(t('Arquivo muito grande para importar. O limite é 16 MB.'));
+      }
+      const data = parseMangoCsv(await file.text());
+      if (data.expenses.length === 0 && data.cards.length === 0) {
+        throw new Error(t('O arquivo não contém lançamentos ou cartões para importar.'));
+      }
+      setPendingImport({ filename: file.name, data });
+    } catch (error) {
+      setPendingImport(null);
+      setCsvFeedback({
+        message: error instanceof Error ? t(error.message) : String(error),
+        error: true,
+      });
+    } finally {
+      if (csvInputRef.current) csvInputRef.current.value = '';
+    }
+  };
+  const confirmarImportacaoCsv = async () => {
+    if (!pendingImport || importingCsv) return;
+    setImportingCsv(true);
+    setCsvFeedback(null);
+    try {
+      await importarBackupCsv(pendingImport.data.expenses, pendingImport.data.cards);
+      const { syncStatus } = useMangoStore.getState();
+      const mensagemSync = syncStatus === 'pending'
+        ? ` ${t('A sincronização com a nuvem está pendente; os dados foram salvos neste dispositivo.')}`
+        : '';
+      setCsvFeedback({
+        message: `${t('Lançamentos adicionados:')} ${pendingImport.data.expenses.length}. ${t('Cartões processados:')} ${pendingImport.data.cards.length}. ${pendingImport.data.skipped > 0 ? `${pendingImport.data.skipped} ${t('linhas ignoradas por estarem inválidas.')}` : ''}${mensagemSync}`,
+        error: false,
+      });
+      setPendingImport(null);
+    } catch (error) {
+      setCsvFeedback({
+        message: error instanceof Error ? t(error.message) : String(error),
+        error: true,
+      });
+    } finally {
+      setImportingCsv(false);
+    }
+  };
   const confirmarApagamento = async () => {
     if (deletePhrase.trim().toLocaleUpperCase() !== t('APAGAR')) return;
     setDeleting(true);
@@ -71,7 +144,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     { titulo: t('Gastos'), detalhe: t('Lançamentos de despesas e receitas'), destino: '/', Icone: ReceiptText },
     { titulo: t('Cartões'), detalhe: t('Gastos do mês cartão a cartão'), destino: '/cartoes', Icone: CreditCard },
     { titulo: t('Editar perfil'), detalhe: t('Nome, avatar e cor de fundo'), destino: '/perfil', Icone: Palette },
-    { titulo: t('Diagnóstico'), detalhe: t('Estado do app e armazenamento'), destino: '/diagnostico', Icone: ShieldCheck },
   ];
 
   return (
@@ -87,7 +159,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             role="dialog"
             aria-modal="true"
             aria-label={t('Menu de navegação')}
-            className="w-full rounded-t-[2rem] border border-white/5 bg-[#111312] px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3 text-stone-100 shadow-2xl sm:max-w-lg sm:rounded-[2rem] sm:pb-6"
+            className="max-h-[90dvh] w-full overflow-y-auto rounded-t-[2rem] border border-white/5 bg-[#111312] px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3 text-stone-100 shadow-2xl sm:max-w-lg sm:rounded-[2rem] sm:pb-6"
           >
             <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-[var(--tema-accent)]/80" />
             <div className="mb-3 flex items-center justify-between">
@@ -118,6 +190,84 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   </span>
                 </Link>
               ))}
+              <button
+                type="button"
+                onClick={exportarCsv}
+                className="group flex w-full items-center gap-4 rounded-2xl px-3 py-3.5 text-left transition hover:bg-white/[0.06]"
+              >
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/[0.055] text-[var(--tema-accent)] transition group-hover:bg-[var(--tema-accent)]/15">
+                  <FileDown className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-base font-medium text-stone-100">{t('Exportar em CSV')}</span>
+                  <span className="mt-0.5 block text-sm text-stone-400">{t('Salvar backup dos lançamentos')}</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => csvInputRef.current?.click()}
+                className="group flex w-full items-center gap-4 rounded-2xl px-3 py-3.5 text-left transition hover:bg-white/[0.06]"
+              >
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/[0.055] text-[var(--tema-accent)] transition group-hover:bg-[var(--tema-accent)]/15">
+                  <FileUp className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-base font-medium text-stone-100">{t('Importar em CSV')}</span>
+                  <span className="mt-0.5 block text-sm text-stone-400">{t('Somar lançamentos de um CSV')}</span>
+                </span>
+              </button>
+              <input
+                ref={csvInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                aria-label={t('Selecionar arquivo CSV')}
+                onChange={(event) => void selecionarCsv(event.target.files?.[0])}
+              />
+              {csvFeedback && (
+                <p role={csvFeedback.error ? 'alert' : 'status'} className={`mx-3 rounded-xl px-3 py-2 text-sm ${csvFeedback.error ? 'bg-rose-500/10 text-rose-300' : 'bg-emerald-500/10 text-emerald-200'}`}>
+                  {csvFeedback.message}
+                </p>
+              )}
+              {pendingImport && (
+                <div className="mx-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                  <p className="truncate text-sm font-medium text-stone-100">{pendingImport.filename}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-stone-400">
+                    {t('Lançamentos encontrados:')} {pendingImport.data.expenses.length}. {t('Cartões encontrados:')} {pendingImport.data.cards.length}. {pendingImport.data.skipped > 0 ? `${pendingImport.data.skipped} ${t('linhas inválidas serão ignoradas.')}` : ''} {t('O perfil atual será mantido.')}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPendingImport(null)}
+                      disabled={importingCsv}
+                      className="flex-1 rounded-lg border border-white/10 px-3 py-2 text-sm text-stone-300 hover:bg-white/5 disabled:opacity-50"
+                    >
+                      {t('Cancelar')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void confirmarImportacaoCsv()}
+                      disabled={importingCsv}
+                      className="flex-1 rounded-lg bg-[var(--tema-accent)] px-3 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-50"
+                    >
+                      {importingCsv ? t('Importando…') : t('Confirmar importação')}
+                    </button>
+                  </div>
+                </div>
+              )}
+              <Link
+                to="/diagnostico"
+                onClick={onClose}
+                className="group flex items-center gap-4 rounded-2xl px-3 py-3.5 transition hover:bg-white/[0.06]"
+              >
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/[0.055] text-[var(--tema-accent)] transition group-hover:bg-[var(--tema-accent)]/15">
+                  <ShieldCheck className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-base font-medium text-stone-100">{t('Diagnóstico')}</span>
+                  <span className="mt-0.5 block text-sm text-stone-400">{t('Estado do app e armazenamento')}</span>
+                </span>
+              </Link>
             </nav>
             <div className="mt-4 border-t border-white/[0.08] pt-4">
               <div className="flex items-center gap-3 px-3">

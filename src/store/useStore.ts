@@ -11,6 +11,7 @@ import type {
   SegurancaConfig,
   TentativasBloqueio,
 } from '../types/models';
+import type { CsvExpenseInput } from '../services/csv-backup';
 import {
   allExpenses,
   insertExpense,
@@ -28,6 +29,7 @@ import {
   loadTentativas,
   saveTentativas,
   deleteLocalDatabase,
+  appendCsvBackupData,
 } from '../services/db';
 import {
   connectAccountData,
@@ -72,6 +74,7 @@ interface MangoState {
   // Ações — Despesas
   carregarDespesas: () => Promise<void>;
   adicionarDespesa: (input: ExpenseInput) => Promise<number>;
+  importarBackupCsv: (expenses: CsvExpenseInput[], cards: CartaoCreditoInput[]) => Promise<void>;
   editarDespesa: (expense: Expense) => Promise<void>;
   excluirDespesa: (id: number) => Promise<void>;
   despesasDoMes: (mes: string) => Expense[];
@@ -213,6 +216,12 @@ export const useMangoStore = create<MangoState>((set, get) => ({
     await get().carregarDespesas();
     await get().sincronizarAgora();
     return id;
+  },
+
+  importarBackupCsv: async (expenses, cards) => {
+    await appendCsvBackupData(expenses, cards);
+    await Promise.all([get().carregarDespesas(), get().carregarCartoes()]);
+    await get().sincronizarAgora();
   },
 
   editarDespesa: async (expense) => {

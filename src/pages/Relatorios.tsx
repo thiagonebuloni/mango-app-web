@@ -6,6 +6,7 @@ import {
   CATEGORY_LABELS,
 } from '../types/models';
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Sparkles,
@@ -49,6 +50,8 @@ export function Relatorios() {
   const [periodoOffset, setPeriodoOffset] = useState(0);
   const [inicioCustom, setInicioCustom] = useState(`${mesAtual}-01`);
   const [fimCustom, setFimCustom] = useState(dataISO(new Date()));
+  const [diaExpandido, setDiaExpandido] = useState<string | null>(null);
+  const [formaExpandida, setFormaExpandida] = useState<PaymentMethod | null>(null);
   const hoje = new Date();
   const inicioTrintaDias = new Date(hoje);
   inicioTrintaDias.setDate(hoje.getDate() - 29 + periodoOffset * 30);
@@ -113,6 +116,24 @@ export function Relatorios() {
     despesasPeriodo.forEach((entry) => {
       if (CATEGORY_RECEITAS.includes(entry.categoria)) return;
       groups[entry.formaPagamento] = (groups[entry.formaPagamento] ?? 0) + entry.valorCentavos;
+    });
+    return groups;
+  }, [despesasPeriodo]);
+
+  const lancamentosPorDia = useMemo(() => {
+    const groups: Record<string, typeof despesasPeriodo> = {};
+    despesasPeriodo.forEach((entry) => {
+      if (CATEGORY_RECEITAS.includes(entry.categoria)) return;
+      (groups[entry.data] ??= []).push(entry);
+    });
+    return groups;
+  }, [despesasPeriodo]);
+
+  const lancamentosPorForma = useMemo(() => {
+    const groups: Partial<Record<PaymentMethod, typeof despesasPeriodo>> = {};
+    despesasPeriodo.forEach((entry) => {
+      if (CATEGORY_RECEITAS.includes(entry.categoria)) return;
+      (groups[entry.formaPagamento] ??= []).push(entry);
     });
     return groups;
   }, [despesasPeriodo]);
@@ -331,19 +352,43 @@ export function Relatorios() {
                   const valor = groupByDay[dia];
                   const pct = (valor / diaMax) * 100;
                   const weekday = new Date(`${dia}T12:00:00`).toLocaleDateString(idioma, { weekday: 'short' });
-                  const quantidade = despesasPeriodo.filter((entry) => entry.data === dia && !CATEGORY_RECEITAS.includes(entry.categoria)).length;
+                  const lancamentos = lancamentosPorDia[dia] ?? [];
+                  const expandido = diaExpandido === dia;
+                  const painelId = `lancamentos-dia-${dia}`;
                   return (
-                    <div key={dia} className="flex min-w-0 items-center gap-2">
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-black/10 text-xs font-bold text-white/85">
-                        {dia.slice(-2)}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-sm text-white/75">
-                        {weekday}, {dayMonth(dia, idioma)} ({quantidade})
-                      </span>
-                      <span className="shrink-0 whitespace-nowrap text-xs font-bold text-white">{formatMoney(valor, idioma)}</span>
-                      <span className="hidden h-1 w-12 shrink-0 overflow-hidden rounded-full bg-black/10 2xl:block">
-                        <span className="block h-full rounded-full bg-[var(--tema-accent)]" style={{ width: `${pct}%` }} />
-                      </span>
+                    <div key={dia} className="min-w-0 rounded-xl bg-black/[0.08]">
+                      <button
+                        type="button"
+                        aria-expanded={expandido}
+                        aria-controls={painelId}
+                        onClick={() => setDiaExpandido(expandido ? null : dia)}
+                        className="flex w-full min-w-0 items-center gap-2 rounded-xl px-2 py-2 text-left transition hover:bg-black/[0.12]"
+                      >
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-black/10 text-xs font-bold text-white/85">
+                          {dia.slice(-2)}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-sm text-white/75">
+                          {weekday}, {dayMonth(dia, idioma)} ({lancamentos.length})
+                        </span>
+                        <span className="shrink-0 whitespace-nowrap text-xs font-bold text-white">{formatMoney(valor, idioma)}</span>
+                        <span className="hidden h-1 w-12 shrink-0 overflow-hidden rounded-full bg-black/10 2xl:block">
+                          <span className="block h-full rounded-full bg-[var(--tema-accent)]" style={{ width: `${pct}%` }} />
+                        </span>
+                        <ChevronDown className={`h-4 w-4 shrink-0 text-white/60 transition-transform ${expandido ? 'rotate-180' : ''}`} />
+                      </button>
+                      {expandido && (
+                        <div id={painelId} className="space-y-2 border-t border-white/[0.08] px-3 py-3">
+                          {lancamentos.map((entry) => (
+                            <div key={entry.id ?? `${entry.data}-${entry.estabelecimento}-${entry.valorCentavos}`} className="flex min-w-0 items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-medium text-white">{entry.estabelecimento || t('Sem descrição')}</p>
+                                <p className="truncate text-xs text-white/55">{t(CATEGORY_LABELS[entry.categoria])} · {t(PAYMENT_METHOD_LABELS[entry.formaPagamento])}</p>
+                              </div>
+                              <span className="shrink-0 text-sm font-semibold text-white/85">{formatMoney(entry.valorCentavos, idioma)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -395,12 +440,41 @@ export function Relatorios() {
             <div className="mt-4 grid grid-cols-1 gap-2">
               {(Object.entries(gruposPagamento) as [PaymentMethod, number][])
                 .sort((a, b) => b[1] - a[1])
-                .map(([forma, valor]) => (
-                  <div key={forma} className="flex min-w-0 items-center justify-between gap-2 rounded-xl bg-black/[0.08] px-3 py-3">
-                    <span className="min-w-0 truncate text-sm text-white/75">{t(PAYMENT_METHOD_LABELS[forma])}</span>
-                    <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-white">{formatMoney(valor, idioma)}</span>
-                  </div>
-                ))}
+                .map(([forma, valor]) => {
+                  const lancamentos = lancamentosPorForma[forma] ?? [];
+                  const expandido = formaExpandida === forma;
+                  const painelId = `lancamentos-forma-${forma}`;
+                  return (
+                    <div key={forma} className="min-w-0 rounded-xl bg-black/[0.08]">
+                      <button
+                        type="button"
+                        aria-expanded={expandido}
+                        aria-controls={painelId}
+                        onClick={() => setFormaExpandida(expandido ? null : forma)}
+                        className="flex w-full min-w-0 items-center justify-between gap-2 rounded-xl px-3 py-3 text-left transition hover:bg-black/[0.12]"
+                      >
+                        <span className="min-w-0 truncate text-sm text-white/75">{t(PAYMENT_METHOD_LABELS[forma])} ({lancamentos.length})</span>
+                        <span className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xs font-semibold text-white">
+                          {formatMoney(valor, idioma)}
+                          <ChevronDown className={`h-4 w-4 text-white/60 transition-transform ${expandido ? 'rotate-180' : ''}`} />
+                        </span>
+                      </button>
+                      {expandido && (
+                        <div id={painelId} className="space-y-2 border-t border-white/[0.08] px-3 py-3">
+                          {lancamentos.map((entry) => (
+                            <div key={entry.id ?? `${entry.data}-${entry.estabelecimento}-${entry.valorCentavos}`} className="flex min-w-0 items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-medium text-white">{entry.estabelecimento || t('Sem descrição')}</p>
+                                <p className="truncate text-xs text-white/55">{dayMonth(entry.data, idioma)} · {t(CATEGORY_LABELS[entry.categoria])}</p>
+                              </div>
+                              <span className="shrink-0 text-sm font-semibold text-white/85">{formatMoney(entry.valorCentavos, idioma)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               {Object.keys(gruposPagamento).length === 0 && (
                 <p className="py-4 text-sm text-white/55">{t('Nenhum lançamento neste período.')}</p>
               )}

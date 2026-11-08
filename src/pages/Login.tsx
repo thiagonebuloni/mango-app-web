@@ -1,16 +1,27 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Code2, LogIn, Mail } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { useI18n } from '../utils/i18n';
+import { isInvalidAuthLinkUrl } from '../services/auth-callback';
 
 export function Login() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() => {
+    const state = location.state;
+    const invalidAuthLink = typeof state === 'object'
+      && state !== null
+      && 'invalidAuthLink' in state
+      && state.invalidAuthLink === true;
+    return invalidAuthLink || isInvalidAuthLinkUrl(window.location.href)
+      ? t('Token inválido.')
+      : null;
+  });
 
   const entrarComEmail = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

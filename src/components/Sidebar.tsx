@@ -62,6 +62,20 @@ export function Sidebar() {
       setDeleting(false);
     }
   };
+  const sairDaConta = async () => {
+    setDeleteError(null);
+    try {
+      if (supabase) {
+        const { error } = await supabase.auth.signOut({ scope: 'local' });
+        if (error) throw error;
+      }
+      sessionStorage.removeItem('mango_developer_bypass');
+      setOpen(false);
+      navigate('/login', { replace: true });
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : String(error));
+    }
+  };
   const itens = [
     { titulo: t('Gastos'), detalhe: t('Lançamentos de despesas e receitas'), destino: '/', Icone: ReceiptText },
     { titulo: t('Cartões'), detalhe: t('Gastos do mês cartão a cartão'), destino: '/cartoes', Icone: CreditCard },
@@ -184,17 +198,7 @@ export function Sidebar() {
               {supabaseConfigured && (
                 <button
                   type="button"
-                  onClick={() => {
-                    void (async () => {
-                      const { error } = await supabase?.auth.signOut({ scope: 'local' }) ?? {};
-                      if (error) {
-                        setDeleteError(error.message);
-                        setOpen(true);
-                      } else {
-                        setOpen(false);
-                      }
-                    })();
-                  }}
+                  onClick={() => void sairDaConta()}
                   className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-2.5 text-sm text-stone-300 transition hover:border-white/25 hover:text-white"
                 >
                   <LogOut className="h-4 w-4" /> {t('Sair da conta')}
@@ -229,7 +233,7 @@ export function Sidebar() {
             <h2 id="delete-account-title" className="text-xl font-semibold text-rose-200">{t('Apagar conta')}</h2>
             <p className="mt-3 text-sm leading-relaxed text-stone-300">
               {t(supabaseConfigured
-                ? 'Os dados locais serão apagados agora. Os dados remotos e o usuário Google serão apagados após 30 dias.'
+                ? 'Sua sessão e identidade serão removidas agora. Os dados remotos ficarão guardados por 30 dias e poderão ser restaurados se você criar uma conta novamente com este e-mail.'
                 : 'Todos os dados salvos neste navegador serão apagados permanentemente.')}
             </p>
             <label htmlFor="delete-account-confirm" className="mt-5 block text-sm text-stone-300">

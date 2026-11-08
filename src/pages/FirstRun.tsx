@@ -1,32 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMangoStore } from '../store/useStore';
-import { Palette, CheckCircle2, Sun, Moon, Globe } from 'lucide-react';
+import { Camera, Check, CheckCircle2, Globe, Moon, Palette, Sun, User } from 'lucide-react';
 import { aplicarTema } from '../utils/theme';
 import type { TemaCor } from '../types/models';
 import { useI18n } from '../utils/i18n';
+import { errorMessage } from '../services/error-message';
 
 interface CorOpcao {
   nome: string;
   valor: string;
-  claro: string;
-  escuro: string;
 }
 
 const CORES: CorOpcao[] = [
-  { nome: 'Verde-água', valor: '#0E4F4A', claro: '#E0F2F1', escuro: '#0E4F4A' },
-  { nome: 'Azul', valor: '#1E3A5F', claro: '#E3F2FD', escuro: '#1E3A5F' },
-  { nome: 'Lilás', valor: '#3B2366', claro: '#F3E5F5', escuro: '#3B2366' },
-  { nome: 'Rosa', valor: '#6B1E3A', claro: '#FCE4EC', escuro: '#6B1E3A' },
-  { nome: 'Pêssego', valor: '#7A4A12', claro: '#FFF3E0', escuro: '#7A4A12' },
-  { nome: 'Verde', valor: '#14532D', claro: '#E8F5E9', escuro: '#14532D' },
-  { nome: 'Amarelo', valor: '#5C4A0E', claro: '#FFFDE7', escuro: '#5C4A0E' },
-  { nome: 'Cinza', valor: '#33393B', claro: '#EEEEEE', escuro: '#33393B' },
+  { nome: 'Verde-água', valor: '#0E4F4A' },
+  { nome: 'Azul', valor: '#1E3A5F' },
+  { nome: 'Lilás', valor: '#3B2366' },
+  { nome: 'Rosa', valor: '#6B1E3A' },
+  { nome: 'Pêssego', valor: '#7A4A12' },
+  { nome: 'Verde', valor: '#14532D' },
+  { nome: 'Amarelo', valor: '#5C4A0E' },
+  { nome: 'Cinza', valor: '#33393B' },
 ];
 
-// Mapeia a cor de fundo selecionada para o nome do tema mais próximo
+const AVATARES = ['🙂', '😄', '😎', '🤓', '🥳', '🤩', '🐱', '🐶', '🦊', '🐼', '🦁', '🐸', '🌟', '🍀'];
+
 function corParaTemaCor(corHex: string): TemaCor {
-  const c = corHex.toLowerCase();
   const mapa: Record<string, TemaCor> = {
     '#0e4f4a': 'forest-green',
     '#1e3a5f': 'ocean-blue',
@@ -37,156 +36,252 @@ function corParaTemaCor(corHex: string): TemaCor {
     '#5c4a0e': 'sunset-warm',
     '#33393b': 'soft-pastel',
   };
-  return mapa[c] ?? 'soft-pastel';
+  return mapa[corHex.toLowerCase()] ?? 'soft-pastel';
 }
 
 export function FirstRun() {
   const navigate = useNavigate();
   const { salvarPerfil, definirIdioma } = useMangoStore();
   const { t } = useI18n();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const [temaClaro, setTemaClaro] = useState<boolean>(false);
-  const [temaCor, setTemaCor] = useState<TemaCor>('soft-pastel');
-  const [corSelecionada, setCorSelecionada] = useState<string>(CORES[0].valor);
+  const [temaClaro, setTemaClaro] = useState(false);
+  const [corSelecionada, setCorSelecionada] = useState(CORES[0].valor);
   const [idioma, setIdioma] = useState<'pt-BR' | 'en-US'>('pt-BR');
-  const [enviando, setEnviando] = useState<boolean>(false);
+  const [username, setUsername] = useState('');
+  const [avatar, setAvatar] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
 
-  const corAtiva = CORES.find((c) => c.valor === corSelecionada);
+  const temaCor = corParaTemaCor(corSelecionada);
+  const avatarEhImagem = avatar.length > 0 && !/^[\p{Emoji}\s]+$/u.test(avatar);
 
-  // Quando a cor de fundo muda, atualiza automaticamente o temaCor
   useEffect(() => {
-    setTemaCor(corParaTemaCor(corAtiva?.valor ?? '#0e4f4a'));
-  }, [corAtiva?.valor]);
-
-  // Aplica o tema imediatamente ao mudar
-  useEffect(() => {
-    aplicarTema(temaClaro, temaCor, corAtiva?.valor ?? '#0e4f4a');
-  }, [temaClaro, temaCor, corAtiva?.valor]);
+    aplicarTema(temaClaro, temaCor, corSelecionada);
+  }, [temaClaro, temaCor, corSelecionada]);
 
   const concluir = async () => {
     setEnviando(true);
-    await salvarPerfil({
-      temaClaro,
-      corFundo: parseInt(corAtiva?.valor.replace('#', '') || '0e4f4a', 16),
-      temaCor,
-      idioma,
-      username: '',
-      avatar: '',
-    });
-    setEnviando(false);
-    navigate('/');
+    setErroSalvar(null);
+    try {
+      await salvarPerfil({
+        temaClaro,
+        corFundo: parseInt(corSelecionada.replace('#', ''), 16),
+        temaCor,
+        idioma,
+        username: username.trim(),
+        avatar,
+      });
+      definirIdioma(idioma);
+      navigate('/');
+    } catch (error) {
+      console.error('Erro ao concluir configuração inicial:', error);
+      setErroSalvar(errorMessage(error));
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 sm:p-12 flex flex-col items-center justify-center">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--tema-accent)]/20 border border-[var(--tema-accent)]/30 mb-4">
-            <CheckCircle2 className="w-8 h-8 text-[var(--tema-accent)]" />
-          </div>
-          <h1 className="text-2xl font-bold">{t('Bem-vindo ao Mango')}</h1>
-          <p className="mt-2 text-gray-400">
+    <div className="min-h-screen bg-background px-4 pb-12 pt-5 text-foreground sm:px-6 sm:pt-8">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-6 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--tema-text-primary)]">{t('Bem-vindo ao Mango')}</h1>
+          <p className="mt-2 text-sm text-[var(--tema-text-secondary)]">
             {t('Vamos configurar o seu perfil antes de começar.')}
           </p>
-        </div>
+        </header>
 
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                <Palette className="w-4 h-4" />
-                {t('Tema')}
-              </label>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start lg:gap-6">
+          <section className="rounded-[1.8rem] border border-white/[0.06] bg-[color-mix(in_srgb,var(--tema-accent)_60%,#21180f)] px-5 py-7 text-center shadow-[0_16px_38px_rgba(0,0,0,.18)]">
+            <div className="relative mx-auto h-32 w-32">
               <button
-                onClick={() => setTemaClaro((v) => !v)}
-                className={`rounded-lg p-1.5 transition-colors ${
-                  temaClaro
-                    ? 'bg-gray-700 text-yellow-300 border border-yellow-500/30'
-                    : 'bg-gray-800 text-[var(--tema-accent)] border border-[var(--tema-accent)]/30'
-                }`}
-                title={t('Alternar claro/escuro')}
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="grid h-full w-full place-items-center overflow-hidden rounded-full border-[5px] border-[#151515] bg-[var(--tema-surface-elevado)] text-6xl shadow-xl"
+                aria-label={t('Trocar avatar')}
               >
-                {temaClaro ? (
-                  <Sun className="w-4 h-4" />
-                ) : (
-                  <Moon className="w-4 h-4" />
-                )}
+                {avatarEhImagem
+                  ? <img src={`data:image/png;base64,${avatar}`} alt={t('Avatar')} className="h-full w-full object-cover" />
+                  : avatar || '👤'}
+              </button>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="absolute -bottom-1 -right-2 z-10 grid h-10 w-10 place-items-center rounded-full border-2 border-[#151515] bg-[var(--tema-accent)] text-white shadow-lg transition hover:scale-105"
+                aria-label={t('Trocar foto do avatar')}
+              >
+                <Camera className="h-4 w-4" />
               </button>
             </div>
-            <p className="text-xs text-gray-500">
-              {temaClaro ? t('Tema claro') : t('Tema escuro')}
-            </p>
-          </div>
+            <p className="mt-4 text-sm text-white/65">{t('Escolha seu avatar')}</p>
+            <p className="mt-1 text-2xl font-bold text-white">{username.trim() || t('Seu nome')}</p>
+            <div className="mt-5 flex items-center justify-center gap-2 text-sm text-white/70">
+              <span className="h-3 w-3 rounded-full ring-2 ring-white/40" style={{ backgroundColor: corSelecionada }} />
+              <span>{t(temaClaro ? 'Tema claro' : 'Tema escuro')}</span>
+            </div>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  if (typeof reader.result === 'string') setAvatar(reader.result.split(',')[1] ?? '');
+                };
+                reader.readAsDataURL(file);
+                event.target.value = '';
+              }}
+              className="hidden"
+            />
+          </section>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              {t('Cor de fundo')}
+          <section className="rounded-3xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 sm:p-6">
+            <label htmlFor="first-run-username" className="mb-2 block text-sm font-medium text-[var(--tema-text-secondary)]">
+              <User className="mr-2 inline h-4 w-4" />{t('Nome de usuário')}
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {CORES.map((c) => (
+            <input
+              id="first-run-username"
+              type="text"
+              autoComplete="nickname"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              className="w-full rounded-xl border border-[var(--tema-border)] bg-[var(--tema-input)] px-4 py-3 text-lg text-[var(--tema-text-primary)] outline-none transition focus:border-[var(--tema-accent)]"
+              placeholder={t('Digite seu nome')}
+            />
+            <p className="mb-3 mt-5 text-center text-sm font-medium text-[var(--tema-text-secondary)]">{t('Ou escolha um emoji')}</p>
+            <div className="grid grid-cols-7 gap-2">
+              {AVATARES.map((emoji) => (
                 <button
-                  key={c.nome}
-                  onClick={() => setCorSelecionada(c.valor)}
-                  className={`h-10 rounded-lg border-2 transition-all ${
-                    corSelecionada === c.valor
-                      ? 'ring-2 ring-white ring-offset-2 ring-offset-gray-900 scale-105'
-                      : 'border-gray-700 hover:border-gray-500'
+                  type="button"
+                  key={emoji}
+                  onClick={() => setAvatar(emoji)}
+                  aria-label={`${t('Usar avatar')} ${emoji}`}
+                  aria-pressed={avatar === emoji}
+                  className={`relative grid aspect-square place-items-center rounded-full border text-2xl transition hover:-translate-y-0.5 ${
+                    avatar === emoji
+                      ? 'border-[var(--tema-accent)] bg-[var(--tema-accent)]/15'
+                      : 'border-white/10 bg-white/[0.035] hover:border-white/25'
                   }`}
-                  style={{
-                    backgroundColor: c.claro,
-                    borderColor: c.escuro,
-                  }}
-                  title={t(c.nome)}
+                >
+                  {emoji}
+                  {avatar === emoji && <Check className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-[var(--tema-accent)] p-0.5 text-white" />}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 sm:p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm font-medium text-[var(--tema-text-primary)]">
+                <Palette className="h-4 w-4" />{t('Tema')}
+              </label>
+              <span className="text-xs text-[var(--tema-text-secondary)]">{temaClaro ? t('Tema claro') : t('Tema escuro')}</span>
+            </div>
+            <div className="grid grid-cols-2 rounded-2xl bg-black/20 p-1">
+              <button
+                type="button"
+                onClick={() => setTemaClaro(true)}
+                aria-pressed={temaClaro}
+                className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm transition ${temaClaro ? 'bg-[var(--tema-accent)] text-white shadow-lg' : 'text-stone-400 hover:text-white'}`}
+              >
+                <Sun className="h-4 w-4" />{t('Claro')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTemaClaro(false)}
+                aria-pressed={!temaClaro}
+                className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm transition ${!temaClaro ? 'bg-[var(--tema-accent)] text-white shadow-lg' : 'text-stone-400 hover:text-white'}`}
+              >
+                <Moon className="h-4 w-4" />{t('Escuro')}
+              </button>
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 sm:p-6">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <label className="flex items-center gap-2 text-sm font-medium text-[var(--tema-text-primary)]">
+                <Palette className="h-4 w-4" />{t('Cor do tema / fundo')}
+              </label>
+              <span className="text-xs text-[var(--tema-text-secondary)]">{t('Selecione a cor de fundo e o tema de destaque')}</span>
+            </div>
+            <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
+              {CORES.map((cor) => (
+                <button
+                  type="button"
+                  key={cor.nome}
+                  onClick={() => setCorSelecionada(cor.valor)}
+                  className={`aspect-square rounded-full border-2 transition-all ${
+                    corSelecionada === cor.valor
+                      ? 'scale-105 ring-2 ring-[var(--tema-text-primary)] ring-offset-2 ring-offset-[var(--tema-surface)]'
+                      : 'border-[var(--tema-border)] hover:border-[var(--tema-text-secondary)]'
+                  }`}
+                  style={{ backgroundColor: cor.valor, borderColor: cor.valor }}
+                  title={t(cor.nome)}
+                  aria-label={t(cor.nome)}
+                  aria-pressed={corSelecionada === cor.valor}
                 />
               ))}
             </div>
-          </div>
+          </section>
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                <Globe className="w-4 h-4" />
-                Idioma
-              </label>
+          <section className="rounded-3xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 sm:p-6">
+            <div className="mb-3 flex items-center gap-2 text-sm font-medium text-[var(--tema-text-primary)]">
+              <Globe className="h-4 w-4" />{t('Idioma')}
             </div>
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => {
                   setIdioma('pt-BR');
                   definirIdioma('pt-BR');
                 }}
-                className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                aria-pressed={idioma === 'pt-BR'}
+                className={`rounded-xl px-4 py-2.5 text-sm transition-colors ${
                   idioma === 'pt-BR'
                     ? 'bg-[var(--tema-accent)] text-white'
-                    : 'bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700'
+                    : 'border border-[var(--tema-border)] bg-[var(--tema-surface-elevado)] text-[var(--tema-text-secondary)] hover:opacity-80'
                 }`}
               >
                 Português
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setIdioma('en-US');
                   definirIdioma('en-US');
                 }}
-                className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                aria-pressed={idioma === 'en-US'}
+                className={`rounded-xl px-4 py-2.5 text-sm transition-colors ${
                   idioma === 'en-US'
                     ? 'bg-[var(--tema-accent)] text-white'
-                    : 'bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700'
+                    : 'border border-[var(--tema-border)] bg-[var(--tema-surface-elevado)] text-[var(--tema-text-secondary)] hover:opacity-80'
                 }`}
               >
                 English
               </button>
             </div>
+          </section>
+
+          <div className="flex flex-col justify-end gap-3 lg:col-start-2">
+            {erroSalvar && (
+              <p role="alert" className="break-words rounded-xl border border-rose-400/20 bg-rose-500/10 p-3 text-sm text-rose-200">
+                {erroSalvar}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => void concluir()}
+              disabled={enviando}
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--tema-accent)] px-5 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {enviando ? t('Salvando…') : t('Concluir configuração')}
+            </button>
           </div>
         </div>
-
-        <button
-          onClick={concluir}
-          disabled={enviando}
-          className="w-full py-3 rounded-lg bg-[var(--tema-accent)] hover:bg-[var(--tema-accent)]/90 disabled:opacity-50 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
-        >
-          {enviando ? t('Salvando…') : t('Concluir configuração')}
-        </button>
       </div>
     </div>
   );

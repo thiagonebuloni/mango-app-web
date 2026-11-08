@@ -5,6 +5,7 @@ import { supabase, supabaseConfigured } from '../services/supabase';
 import { useMangoStore } from '../store/useStore';
 import { useI18n } from '../utils/i18n';
 import { errorMessage } from '../services/error-message';
+import { isInvalidAuthLinkError, isInvalidAuthLinkUrl } from '../services/auth-callback';
 
 interface SupabaseAuthGateProps {
   children: ReactNode;
@@ -18,6 +19,7 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
   const [authLoading, setAuthLoading] = useState(supabaseConfigured);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
+  const [invalidAuthLink, setInvalidAuthLink] = useState(() => isInvalidAuthLinkUrl(window.location.href));
   const sessionUserId = session?.user.id;
   const developerBypass = import.meta.env.DEV
     && sessionStorage.getItem('mango_developer_bypass') === 'true';
@@ -35,14 +37,18 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
 
     supabase.auth.getSession().then(({ data, error }) => {
       if (!active) return;
-      if (error) setSyncError(error.message);
+      if (error) {
+        if (isInvalidAuthLinkError(error)) setInvalidAuthLink(true);
+        else setSyncError(error.message);
+      }
       setSession(data.session);
       if (!data.session) setConnectedUserId(null);
       setAuthLoading(false);
     }).catch((error: unknown) => {
       if (!active) return;
       console.error('Erro ao recuperar a sessão Supabase:', error);
-      setSyncError(errorMessage(error));
+      if (isInvalidAuthLinkError(error)) setInvalidAuthLink(true);
+      else setSyncError(errorMessage(error));
       setAuthLoading(false);
     });
 
@@ -84,6 +90,17 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
   if (developerBypass) return children;
   if (!supabaseConfigured) return children;
 
+  const hasInvalidAuthLink = invalidAuthLink
+    || isInvalidAuthLinkUrl(`${window.location.origin}${location.pathname}${location.search}${location.hash}`)
+    || (typeof location.state === 'object'
+      && location.state !== null
+      && 'invalidAuthLink' in location.state
+      && location.state.invalidAuthLink === true);
+
+  if (hasInvalidAuthLink && location.pathname !== '/login') {
+    return <Navigate to="/login" replace state={{ invalidAuthLink: true }} />;
+  }
+
   if (authLoading || (sessionUserId && connectedUserId !== sessionUserId && !syncError)) {
     return (
       <main className="grid min-h-screen place-items-center bg-background px-6 text-foreground">
@@ -93,7 +110,7 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
   }
 
   if (location.pathname === '/login' || location.pathname === '/register') {
-    return session ? <Navigate to="/" replace /> : children;
+    return session && !hasInvalidAuthLink ? <Navigate to="/" replace /> : children;
   }
 
   if (!session) {

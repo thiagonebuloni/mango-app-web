@@ -48,25 +48,36 @@ Deno.serve(async (request) => {
     return Response.json({ error: 'Could not schedule account deletion' }, { status: 500, headers: corsHeaders });
   }
 
-  if (existing?.scheduled_delete_at) {
-    return Response.json({
-      deletionRequestedAt: existing.deletion_requested_at,
-      scheduledDeleteAt: existing.scheduled_delete_at,
-    }, { headers: corsHeaders });
+  let requestedAt: Date;
+  let scheduledAt: Date;
+  if (existing?.scheduled_delete_at && existing.deletion_requested_at) {
+    requestedAt = new Date(existing.deletion_requested_at);
+    scheduledAt = new Date(existing.scheduled_delete_at);
+  } else {
+    requestedAt = new Date();
+    scheduledAt = new Date(requestedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const { error: saveError } = await admin.from('user_data').upsert({
+      user_id: user.id,
+      data: existing?.data ?? {},
+      deletion_requested_at: requestedAt.toISOString(),
+      scheduled_delete_at: scheduledAt.toISOString(),
+      updated_at: requestedAt.toISOString(),
+    });
+    if (saveError) {
+      console.error('Could not save account deletion request:', saveError);
+      return Response.json({ error: 'Could not schedule account deletion' }, { status: 500, headers: corsHeaders });
+    }
   }
 
-  const requestedAt = new Date();
-  const scheduledAt = new Date(requestedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
-  const { error: saveError } = await admin.from('user_data').upsert({
-    user_id: user.id,
-    data: existing?.data ?? {},
-    deletion_requested_at: requestedAt.toISOString(),
-    scheduled_delete_at: scheduledAt.toISOString(),
-    updated_at: requestedAt.toISOString(),
+  const { error: banError } = await admin.auth.admin.updateUserById(user.id, {
+    ban_duration: '876000h',
   });
-  if (saveError) {
-    console.error('Could not save account deletion request:', saveError);
-    return Response.json({ error: 'Could not schedule account deletion' }, { status: 500, headers: corsHeaders });
+  if (banError) {
+    console.error('Could not block sign-in for account scheduled for deletion:', banError);
+    return Response.json({ error: 'Deletion is scheduled, but sign-in could not be blocked. Contact support.' }, {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 
   return Response.json({

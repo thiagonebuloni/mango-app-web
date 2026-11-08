@@ -3,10 +3,13 @@
 ## App credentials and Google OAuth
 
 1. Copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from the Supabase project's API settings. Use the `sb_publishable_...` key; do not use the deprecated `anon` key or put a secret/service-role key in a `VITE_` variable.
-2. In Supabase Auth, enable Google and configure the Google OAuth client ID and secret. Add `https://<project-ref>.supabase.co/auth/v1/callback` to the Google OAuth authorized redirect URIs.
-3. Add the app's local and deployed origins to Supabase Auth's allowed redirect URLs.
+2. In Supabase Auth, enable Email/password sign-ups and configure email confirmation as desired.
+3. To enable Google sign-in, configure the Google OAuth client ID and secret. Add `https://<project-ref>.supabase.co/auth/v1/callback` to the Google OAuth authorized redirect URIs.
+4. Add the app's local and deployed origins to Supabase Auth's allowed redirect URLs.
 
-When both app variables are configured, routes require Google sign-in. IndexedDB remains the offline cache. On the first login for an account, local data is imported if the Supabase account has no snapshot; otherwise the cloud snapshot replaces that account's local cache. Future local changes sync to the cloud, and pending writes retry when the browser comes back online.
+The developer-login shortcut is included only in Vite development mode (`import.meta.env.DEV`). It bypasses the app's login gate for local development and uses local browser data only; it is not an authenticated Supabase session and is not included in production builds.
+
+Before users sign in, apply the database migration in the next section. Without the `public.user_data` table, sign-in succeeds but the app cannot connect or sync account data. IndexedDB remains the offline cache. On the first login for an account, local data is imported if the Supabase account has no snapshot; otherwise the cloud snapshot replaces that account's local cache. Future local changes sync to the cloud, and pending writes retry when the browser comes back online.
 
 ## Database and Edge Functions
 
@@ -25,7 +28,7 @@ Supabase injects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` into Edge Functi
 
 ## Schedule account deletion
 
-The app immediately clears this browser's IndexedDB and records a remote deletion request. Supabase blocks normal reads and writes for that account immediately; the Auth user and remote snapshot are permanently deleted after 30 days.
+The app immediately clears this browser's IndexedDB, blocks further sign-ins for the account, and records a remote deletion request. Supabase blocks normal reads and writes for that account immediately; the Auth user and remote snapshot are permanently deleted after 30 days.
 
 To purge expired requests automatically, enable `pg_cron`, `pg_net`, and Vault in the Supabase project's database extensions. Store the same random value used for `ACCOUNT_PURGE_SECRET` in Vault:
 

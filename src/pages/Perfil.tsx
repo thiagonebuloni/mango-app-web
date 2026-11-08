@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMangoStore } from '../store/useStore';
-import { Palette, Sun, Moon, Globe, Shield, User, Camera, Check, Smile } from 'lucide-react';
+import { Palette, Sun, Moon, Globe, User, Camera, Check, Smile } from 'lucide-react';
 import { aplicarTema } from '../utils/theme';
 import { BottomNav } from '../components/BottomNav';
 import type { TemaCor } from '../types/models';
@@ -47,7 +47,7 @@ function corParaTemaCor(corHex: string): TemaCor {
 
 export function Perfil() {
   const navigate = useNavigate();
-  const { perfil, salvarPerfil, seguranca, salvarSeguranca, definirIdioma } = useMangoStore();
+  const { perfil, salvarPerfil, definirIdioma } = useMangoStore();
   const { t } = useI18n();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [emojiKeyboardOpen, setEmojiKeyboardOpen] = useState(false);
@@ -72,12 +72,6 @@ export function Perfil() {
   );
   const [username, setUsername] = useState<string>(perfil?.username ?? '');
   const [avatar, setAvatarBase64] = useState<string>(perfil?.avatar ?? '');
-  const [pinAtivo, setPinAtivo] = useState<boolean>(
-    seguranca?.pinAtivo ?? false,
-  );
-  const [bloqueioAtivo, setBloqueioAtivo] = useState<boolean>(
-    seguranca?.bloqueioAtivo ?? false,
-  );
   const [enviando, setEnviando] = useState<boolean>(false);
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
 
@@ -96,12 +90,6 @@ export function Perfil() {
     setAvatarBase64(perfil.avatar ?? '');
   }, [perfil]);
 
-  useEffect(() => {
-    if (!seguranca) return;
-    setPinAtivo(seguranca.pinAtivo);
-    setBloqueioAtivo(seguranca.bloqueioAtivo);
-  }, [seguranca]);
-
   // Aplica o tema ao montar e sempre que mudar temaClaro, temaCor ou corSelecionada
   useEffect(() => {
     aplicarTema(temaClaro, temaCor, corFundoHex);
@@ -118,11 +106,6 @@ export function Perfil() {
         idioma,
         username,
         avatar,
-      });
-      await salvarSeguranca({
-        pinAtivo,
-        pinHash: seguranca?.pinHash,
-        bloqueioAtivo,
       });
       navigate('/');
     } catch (error) {
@@ -342,35 +325,6 @@ export function Perfil() {
             </div>
           </div>
 
-          {/* Segurança */}
-          <div id="seguranca" className="rounded-xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <Shield className="w-4 h-4 text-[var(--tema-text-secondary)]" />
-              <h2 className="text-sm font-medium text-[var(--tema-text-primary)]">{t('Segurança')}</h2>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-[var(--tema-text-primary)]">{t('PIN ativo')}</span>
-              <button
-                onClick={() => setPinAtivo((v) => !v)}
-                className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                  pinAtivo ? 'bg-[var(--tema-accent)] text-white' : 'bg-[var(--tema-surface-elevado)] border border-[var(--tema-border)] text-[var(--tema-text-secondary)] hover:opacity-80'
-                }`}
-              >
-                {pinAtivo ? t('Sim') : t('Não')}
-              </button>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-[var(--tema-text-primary)]">{t('Bloqueio ativo')}</span>
-              <button
-                onClick={() => setBloqueioAtivo((v) => !v)}
-                className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                  bloqueioAtivo ? 'bg-[var(--tema-accent)] text-white' : 'bg-[var(--tema-surface-elevado)] border border-[var(--tema-border)] text-[var(--tema-text-secondary)] hover:opacity-80'
-                }`}
-              >
-                {bloqueioAtivo ? t('Sim') : t('Não')}
-              </button>
-            </div>
-          </div>
         </div>
 
         <div className="mx-auto mt-6 max-w-3xl lg:mt-8">

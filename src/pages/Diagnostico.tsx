@@ -5,7 +5,16 @@ import { localAiService } from '../services/local-ai';
 
 export function Diagnostico() {
   const navigate = useNavigate();
-  const { despesas, cartoes, perfil, seguranca, tentativas } = useMangoStore();
+  const {
+    despesas,
+    cartoes,
+    perfil,
+    seguranca,
+    tentativas,
+    syncStatus,
+    syncError,
+    sincronizarAgora,
+  } = useMangoStore();
   const { t } = useI18n();
   const statusIa = localAiService.getStatus();
 
@@ -59,9 +68,23 @@ export function Diagnostico() {
 
         <section className="rounded-xl border border-gray-800 bg-gray-900/40 p-5">
           <h2 className="text-lg font-semibold mb-4">{t('Log de falhas')}</h2>
-          <p className="text-sm text-gray-500">
-            {t('Nenhum registro de falha. O log local (falhas.jsonl) é usado no app Flutter; no navegador, erros são exibidos no console.')}
-          </p>
+          <div className="rounded-lg border border-gray-800 bg-black/20 p-4">
+            <p className="text-sm font-medium text-gray-200">
+              {t(syncStatus === 'local' ? 'Somente neste dispositivo' : syncStatus === 'synced' ? 'Sincronizado com Supabase' : syncStatus === 'syncing' ? 'Sincronizando…' : syncStatus === 'pending' ? 'Sincronização pendente' : 'Erro de sincronização')}
+            </p>
+            {syncError
+              ? <p role="alert" className="mt-2 break-words text-sm text-rose-300">{syncError}</p>
+              : <p className="mt-2 text-sm text-gray-500">{t('Nenhum erro de sincronização registrado.')}</p>}
+            {syncStatus === 'pending' && (
+              <button
+                type="button"
+                onClick={() => void sincronizarAgora()}
+                className="mt-3 text-sm font-semibold text-[var(--tema-accent)] hover:underline"
+              >
+                {t('Sincronizar agora')}
+              </button>
+            )}
+          </div>
         </section>
       </div>
     </div>

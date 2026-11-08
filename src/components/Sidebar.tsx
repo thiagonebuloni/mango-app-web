@@ -5,7 +5,6 @@ import {
   CreditCard,
   House,
   LogOut,
-  LockKeyhole,
   Palette,
   ReceiptText,
   SlidersHorizontal,
@@ -28,7 +27,7 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { perfil, syncStatus, syncError, sincronizarAgora, apagarConta } = useMangoStore();
+  const { perfil, apagarConta } = useMangoStore();
   const { t } = useI18n();
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deletePhrase, setDeletePhrase] = useState('');
@@ -72,7 +71,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     { titulo: t('Gastos'), detalhe: t('Lançamentos de despesas e receitas'), destino: '/', Icone: ReceiptText },
     { titulo: t('Cartões'), detalhe: t('Gastos do mês cartão a cartão'), destino: '/cartoes', Icone: CreditCard },
     { titulo: t('Editar perfil'), detalhe: t('Nome, avatar e cor de fundo'), destino: '/perfil', Icone: Palette },
-    { titulo: t('Segurança'), detalhe: t('Bloqueio do app com PIN e biometria'), destino: '/perfil#seguranca', Icone: LockKeyhole },
     { titulo: t('Diagnóstico'), detalhe: t('Estado do app e armazenamento'), destino: '/diagnostico', Icone: ShieldCheck },
   ];
 
@@ -122,21 +120,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               ))}
             </nav>
             <div className="mt-4 border-t border-white/[0.08] pt-4">
-              <div className="mb-3 rounded-xl bg-white/[0.04] px-3 py-3">
-                <p className="text-sm font-medium text-stone-200">
-                  {t(syncStatus === 'local' ? 'Somente neste dispositivo' : syncStatus === 'synced' ? 'Sincronizado com Supabase' : syncStatus === 'syncing' ? 'Sincronizando…' : syncStatus === 'pending' ? 'Sincronização pendente' : 'Erro de sincronização')}
-                </p>
-                {syncError && <p className="mt-1 break-words text-xs text-rose-300">{syncError}</p>}
-                {syncStatus === 'pending' && (
-                  <button
-                    type="button"
-                    onClick={() => void sincronizarAgora()}
-                    className="mt-2 text-xs font-semibold text-[var(--tema-accent)] hover:underline"
-                  >
-                    {t('Sincronizar agora')}
-                  </button>
-                )}
-              </div>
               <div className="flex items-center gap-3 px-3">
                 <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/[0.06] text-2xl">
                   {avatarEhImagem

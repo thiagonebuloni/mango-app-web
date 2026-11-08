@@ -41,6 +41,7 @@ const traducoesEn: Record<string, string> = {
   'Sincronização pendente': 'Sync pending',
   'Erro de sincronização': 'Sync error',
   'Sincronizar agora': 'Sync now',
+  'Nenhum erro de sincronização registrado.': 'No synchronization errors recorded.',
   'Sair da conta': 'Sign out',
   'Apagar conta': 'Delete account',
   'Sua sessão e identidade serão removidas agora. Os dados remotos ficarão guardados por 30 dias e poderão ser restaurados se você criar uma conta novamente com este e-mail.': 'Your session and sign-in identity will be removed now. Remote data will be kept for 30 days and can be restored if you create a new account with this email.',

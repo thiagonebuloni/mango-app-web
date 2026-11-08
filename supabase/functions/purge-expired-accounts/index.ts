@@ -41,13 +41,32 @@ Deno.serve(async (request) => {
   const deleted: string[] = [];
   const failures: string[] = [];
   for (const account of expired ?? []) {
-    const { error } = await admin.auth.admin.deleteUser(account.user_id);
-    if (error) {
-      console.error(`Could not delete expired account ${account.user_id}:`, error);
+    const { data: authUser, error: lookupError } = await admin.auth.admin.getUserById(account.user_id);
+    if (lookupError && lookupError.status !== 404) {
+      console.error(`Could not look up expired account ${account.user_id}:`, lookupError);
       failures.push(account.user_id);
-    } else {
-      deleted.push(account.user_id);
+      continue;
     }
+
+    if (authUser.user) {
+      const { error: authDeleteError } = await admin.auth.admin.deleteUser(account.user_id);
+      if (authDeleteError) {
+        console.error(`Could not delete expired Auth user ${account.user_id}:`, authDeleteError);
+        failures.push(account.user_id);
+        continue;
+      }
+    }
+
+    const { error: dataDeleteError } = await admin
+      .from('user_data')
+      .delete()
+      .eq('user_id', account.user_id);
+    if (dataDeleteError) {
+      console.error(`Could not delete expired data for ${account.user_id}:`, dataDeleteError);
+      failures.push(account.user_id);
+      continue;
+    }
+    deleted.push(account.user_id);
   }
 
   return Response.json({ deleted: deleted.length, failures }, { headers: corsHeaders });

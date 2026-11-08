@@ -28,7 +28,9 @@ Supabase injects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` into Edge Functi
 
 ## Schedule account deletion
 
-The app immediately clears this browser's IndexedDB, blocks further sign-ins for the account, and records a remote deletion request. Supabase blocks normal reads and writes for that account immediately; the Auth user and remote snapshot are permanently deleted after 30 days.
+The app immediately clears this browser's IndexedDB and removes the Auth identity, making its email available for registration again. Its remote snapshot is retained but inaccessible and marked for deletion for 30 days. If the owner registers again with the same email and confirms it before the deadline, a database trigger restores the snapshot to the new Auth identity and cancels the scheduled deletion. Otherwise the daily purge permanently removes the snapshot after 30 days.
+
+The reactivation migration also removes Auth identities for deletion requests that were already pending under the previous 30-day-ban behavior, while retaining their snapshots for the remainder of their scheduled period.
 
 To purge expired requests automatically, enable `pg_cron`, `pg_net`, and Vault in the Supabase project's database extensions. Store the same random value used for `ACCOUNT_PURGE_SECRET` in Vault:
 

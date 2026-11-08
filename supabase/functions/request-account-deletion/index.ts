@@ -37,6 +37,9 @@ Deno.serve(async (request) => {
   if (authError || !user) {
     return Response.json({ error: 'Invalid session' }, { status: 401, headers: corsHeaders });
   }
+  if (!user.email) {
+    return Response.json({ error: 'Account email is unavailable' }, { status: 400, headers: corsHeaders });
+  }
 
   const { data: existing, error: lookupError } = await admin
     .from('user_data')
@@ -59,6 +62,7 @@ Deno.serve(async (request) => {
     const { error: saveError } = await admin.from('user_data').upsert({
       user_id: user.id,
       data: existing?.data ?? {},
+      owner_email: user.email.toLowerCase(),
       deletion_requested_at: requestedAt.toISOString(),
       scheduled_delete_at: scheduledAt.toISOString(),
       updated_at: requestedAt.toISOString(),
@@ -69,12 +73,10 @@ Deno.serve(async (request) => {
     }
   }
 
-  const { error: banError } = await admin.auth.admin.updateUserById(user.id, {
-    ban_duration: '876000h',
-  });
-  if (banError) {
-    console.error('Could not block sign-in for account scheduled for deletion:', banError);
-    return Response.json({ error: 'Deletion is scheduled, but sign-in could not be blocked. Contact support.' }, {
+  const { error: deleteAuthError } = await admin.auth.admin.deleteUser(user.id);
+  if (deleteAuthError) {
+    console.error('Could not remove Auth user after scheduling account deletion:', deleteAuthError);
+    return Response.json({ error: 'Data is scheduled for deletion, but the sign-in identity could not be removed.' }, {
       status: 500,
       headers: corsHeaders,
     });

@@ -35,6 +35,7 @@ import {
   syncAccountData,
 } from '../services/cloud-sync';
 import { supabase, supabaseConfigured } from '../services/supabase';
+import { errorMessage } from '../services/error-message';
 
 
 // ---------- Tipos de mês ----------
@@ -145,7 +146,7 @@ export const useMangoStore = create<MangoState>((set, get) => ({
       });
     } catch (error) {
       console.error('Erro ao conectar os dados da conta:', error);
-      set({ syncStatus: 'error', syncError: error instanceof Error ? error.message : String(error) });
+      set({ syncStatus: 'error', syncError: errorMessage(error) });
       throw error;
     }
   },
@@ -166,7 +167,7 @@ export const useMangoStore = create<MangoState>((set, get) => ({
       console.error('Erro ao sincronizar os dados com o Supabase:', error);
       set({
         syncStatus: 'pending',
-        syncError: error instanceof Error ? error.message : String(error),
+        syncError: errorMessage(error),
       });
     }
   },

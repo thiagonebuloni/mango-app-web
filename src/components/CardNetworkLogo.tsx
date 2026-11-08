@@ -1,6 +1,9 @@
 import type { BandeiraCartao } from '../types/models';
 import { BANDEIRA_LABELS } from '../types/models';
 import eloLogo from '../assets/elo.svg';
+import hipercardLogo from '../assets/card-networks/hipercard.svg';
+import mastercardLogo from '../assets/card-networks/mastercard.svg';
+import visaLogo from '../assets/card-networks/visa.svg';
 
 interface CardNetworkLogoProps {
   network: BandeiraCartao;
@@ -11,7 +14,19 @@ export function CardNetworkLogo({ network, className = 'h-10 w-16' }: CardNetwor
   const label = BANDEIRA_LABELS[network];
 
   if (network === 'elo') {
-    return <img className={className} src={eloLogo} alt={label} />;
+    return <img className={`${className} object-contain`} src={eloLogo} alt={label} />;
+  }
+
+  const logo = network === 'mastercard'
+    ? mastercardLogo
+    : network === 'visa'
+      ? visaLogo
+      : network === 'hipercard'
+        ? hipercardLogo
+        : null;
+
+  if (logo) {
+    return <img className={`${className} object-contain`} src={logo} alt={label} />;
   }
 
   return (
@@ -22,35 +37,7 @@ export function CardNetworkLogo({ network, className = 'h-10 w-16' }: CardNetwor
       aria-label={label}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {network === 'mastercard' ? (
-        <text
-          x="50"
-          y="37"
-          textAnchor="middle"
-          fill="#171717"
-          fontFamily="Arial, sans-serif"
-          fontSize="16"
-          fontWeight="700"
-          textLength="82"
-          lengthAdjust="spacingAndGlyphs"
-        >
-          Mastercard
-        </text>
-      ) : network === 'hipercard' ? (
-        <text
-          x="50"
-          y="37"
-          textAnchor="middle"
-          fill="#171717"
-          fontFamily="Arial, sans-serif"
-          fontSize="16"
-          fontWeight="700"
-          textLength="82"
-          lengthAdjust="spacingAndGlyphs"
-        >
-          Hipercard
-        </text>
-      ) : network === 'outros' ? (
+      {network === 'outros' ? (
         <text
           x="50"
           y="37"

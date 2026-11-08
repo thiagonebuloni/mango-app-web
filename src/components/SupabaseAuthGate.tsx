@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '../services/supabase';
 import { useMangoStore } from '../store/useStore';
 import { useI18n } from '../utils/i18n';
+import { errorMessage } from '../services/error-message';
 
 interface SupabaseAuthGateProps {
   children: ReactNode;
@@ -18,6 +19,8 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
   const [syncError, setSyncError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const sessionUserId = session?.user.id;
+  const developerBypass = import.meta.env.DEV
+    && sessionStorage.getItem('mango_developer_bypass') === 'true';
 
   useEffect(() => {
     if (!supabase) return;
@@ -39,7 +42,7 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
     }).catch((error: unknown) => {
       if (!active) return;
       console.error('Erro ao recuperar a sessão Supabase:', error);
-      setSyncError(error instanceof Error ? error.message : String(error));
+      setSyncError(errorMessage(error));
       setAuthLoading(false);
     });
 
@@ -61,7 +64,7 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
       if (active) setConnectedUserId(sessionUserId);
     }).catch((error: unknown) => {
       if (!active) return;
-      setSyncError(error instanceof Error ? error.message : String(error));
+      setSyncError(errorMessage(error));
     });
 
     return () => {
@@ -78,6 +81,7 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
     return () => window.removeEventListener('online', retrySync);
   }, []);
 
+  if (developerBypass) return children;
   if (!supabaseConfigured) return children;
 
   if (authLoading || (sessionUserId && connectedUserId !== sessionUserId && !syncError)) {
@@ -88,7 +92,7 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
     );
   }
 
-  if (location.pathname === '/login') {
+  if (location.pathname === '/login' || location.pathname === '/register') {
     return session ? <Navigate to="/" replace /> : children;
   }
 

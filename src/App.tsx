@@ -19,6 +19,7 @@ import { useMangoStore } from './store/useStore';
 import { useEffect } from 'react';
 import { SupabaseAuthGate } from './components/SupabaseAuthGate';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 
 function App() {
   const { perfil, idioma } = useMangoStore();
@@ -43,6 +44,7 @@ function App() {
         <Sidebar />
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/splash" element={<Splash />} />
           <Route path="/first-run" element={<FirstRun />} />
           <Route path="/landing" element={<Landing />} />

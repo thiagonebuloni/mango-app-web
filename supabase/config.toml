@@ -1,0 +1,2 @@
+[functions.purge-expired-accounts]
+verify_jwt = false

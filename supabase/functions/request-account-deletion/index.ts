@@ -1,0 +1,76 @@
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+Deno.serve(async (request) => {
+  if (request.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+  if (request.method !== 'POST') {
+    return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders });
+  }
+
+  const authorization = request.headers.get('Authorization');
+  if (!authorization) {
+    return Response.json({ error: 'Authentication required' }, { status: 401, headers: corsHeaders });
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !serviceRoleKey) {
+    return Response.json({ error: 'Server Supabase configuration is incomplete' }, { status: 500, headers: corsHeaders });
+  }
+
+  const token = authorization.replace(/^Bearer\s+/i, '');
+  if (token === authorization) {
+    return Response.json({ error: 'Invalid authorization header' }, { status: 401, headers: corsHeaders });
+  }
+
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data: { user }, error: authError } = await admin.auth.getUser(token);
+  if (authError || !user) {
+    return Response.json({ error: 'Invalid session' }, { status: 401, headers: corsHeaders });
+  }
+
+  const { data: existing, error: lookupError } = await admin
+    .from('user_data')
+    .select('data, deletion_requested_at, scheduled_delete_at')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (lookupError) {
+    console.error('Could not load account data before deletion request:', lookupError);
+    return Response.json({ error: 'Could not schedule account deletion' }, { status: 500, headers: corsHeaders });
+  }
+
+  if (existing?.scheduled_delete_at) {
+    return Response.json({
+      deletionRequestedAt: existing.deletion_requested_at,
+      scheduledDeleteAt: existing.scheduled_delete_at,
+    }, { headers: corsHeaders });
+  }
+
+  const requestedAt = new Date();
+  const scheduledAt = new Date(requestedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const { error: saveError } = await admin.from('user_data').upsert({
+    user_id: user.id,
+    data: existing?.data ?? {},
+    deletion_requested_at: requestedAt.toISOString(),
+    scheduled_delete_at: scheduledAt.toISOString(),
+    updated_at: requestedAt.toISOString(),
+  });
+  if (saveError) {
+    console.error('Could not save account deletion request:', saveError);
+    return Response.json({ error: 'Could not schedule account deletion' }, { status: 500, headers: corsHeaders });
+  }
+
+  return Response.json({
+    deletionRequestedAt: requestedAt.toISOString(),
+    scheduledDeleteAt: scheduledAt.toISOString(),
+  }, { headers: corsHeaders });
+});

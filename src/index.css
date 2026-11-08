@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background-light: 255 255 255;
+    --background-dark: 13 15 15;
+    --foreground-light: 24 24 27;
+    --foreground-dark: 244 244 245;
+
+    /* Tema de cores padrão (soft-pastel) */
+    --tema-primary: #0D0F0F;
+    --tema-secondary: #181A1A;
+    --tema-text-primary: #F4F4F5;
+    --tema-text-secondary: #A1A1AA;
+    --tema-accent: #0E4F4A;
+    --tema-surface: #181A1A;
+    --tema-surface-elevado: #242727;
+    --tema-border: #333636;
+    --tema-input: #242727;
+    --tema-cor-fundo: #0E4F4A;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    min-height: 100vh;
+    font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Light theme - default */
+  .light {
+    --color-background: var(--background-light);
+    --color-foreground: var(--foreground-light);
+  }
+
+  /* Dark theme */
+  .dark {
+    --color-background: var(--background-dark);
+    --color-foreground: var(--foreground-dark);
+  }
+}

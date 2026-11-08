@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
+import { SidebarMenuContext } from './components/SidebarMenuContext';
 import { Home } from './pages/Home';
 import { Splash } from './pages/Splash';
 import { FirstRun } from './pages/FirstRun';
@@ -12,17 +14,16 @@ import { CartaoDetalhe } from './pages/CartaoDetalhe';
 import { CartaoForm } from './pages/CartaoForm';
 import { Diagnostico } from './pages/Diagnostico';
 import { Perfil } from './pages/Perfil';
-import { ThemeToggle } from './components/ThemeToggle';
 import { aplicarTema } from './utils/theme';
 import type { TemaCor } from './types/models';
 import { useMangoStore } from './store/useStore';
-import { useEffect } from 'react';
 import { SupabaseAuthGate } from './components/SupabaseAuthGate';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 
 function App() {
   const { perfil, idioma } = useMangoStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = idioma;
@@ -40,27 +41,28 @@ function App() {
   return (
     <BrowserRouter>
       <SupabaseAuthGate>
-        <ThemeToggle />
-        <Sidebar />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/splash" element={<Splash />} />
-          <Route path="/first-run" element={<FirstRun />} />
-          <Route path="/landing" element={<Landing />} />
-          <Route path="/lock" element={<LockScreen onUnlock={() => {}} />} />
-          <Route path="/despesa/nova" element={<DespesaForm />} />
-          <Route path="/receita/nova" element={<DespesaForm tipoInicial="receita" />} />
-          <Route path="/despesa/editar/:id" element={<DespesaForm />} />
-          <Route path="/relatorios" element={<Relatorios />} />
-          <Route path="/cartoes" element={<Cartoes />} />
-          <Route path="/cartao/:id" element={<CartaoDetalhe />} />
-          <Route path="/cartao/nova" element={<CartaoForm />} />
-          <Route path="/cartao/editar/:id" element={<CartaoForm />} />
-          <Route path="/diagnostico" element={<Diagnostico />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/" element={<Home />} />
-        </Routes>
+        <SidebarMenuContext.Provider value={() => setSidebarOpen(true)}>
+          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/splash" element={<Splash />} />
+            <Route path="/first-run" element={<FirstRun />} />
+            <Route path="/landing" element={<Landing />} />
+            <Route path="/lock" element={<LockScreen onUnlock={() => {}} />} />
+            <Route path="/despesa/nova" element={<DespesaForm />} />
+            <Route path="/receita/nova" element={<DespesaForm tipoInicial="receita" />} />
+            <Route path="/despesa/editar/:id" element={<DespesaForm />} />
+            <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/cartoes" element={<Cartoes />} />
+            <Route path="/cartao/:id" element={<CartaoDetalhe />} />
+            <Route path="/cartao/nova" element={<CartaoForm />} />
+            <Route path="/cartao/editar/:id" element={<CartaoForm />} />
+            <Route path="/diagnostico" element={<Diagnostico />} />
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/" element={<Home />} />
+          </Routes>
+        </SidebarMenuContext.Provider>
       </SupabaseAuthGate>
     </BrowserRouter>
   );

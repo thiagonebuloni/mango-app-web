@@ -4,6 +4,9 @@
 
 @layer base {
   :root {
+    color-scheme: dark;
+    --color-background: var(--background-dark);
+    --color-foreground: var(--foreground-dark);
     --background-light: 255 255 255;
     --background-dark: 13 15 15;
     --foreground-light: 24 24 27;
@@ -36,7 +39,7 @@
     flex-direction: column;
   }
 
-  /* Light theme - default */
+  /* Light theme */
   .light {
     --color-background: var(--background-light);
     --color-foreground: var(--foreground-light);

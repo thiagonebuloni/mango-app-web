@@ -1,0 +1,23 @@
+{
+  "name": "Mango",
+  "short_name": "Mango",
+  "description": "Controle financeiro pessoal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffc13b",
+  "theme_color": "#ffc13b",
+  "icons": [
+    {
+      "src": "/mango-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/mango-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

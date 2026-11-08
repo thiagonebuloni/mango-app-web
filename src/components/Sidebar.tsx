@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   ChartNoAxesCombined,
   CreditCard,
   House,
   LogOut,
   LockKeyhole,
-  Menu,
   Palette,
   ReceiptText,
   SlidersHorizontal,
@@ -22,28 +20,22 @@ import { supabase, supabaseConfigured } from '../services/supabase';
 
 const ROTAS_PRINCIPAIS = ['/', '/relatorios', '/cartoes', '/perfil', '/landing'];
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { perfil, syncStatus, syncError, sincronizarAgora, apagarConta } = useMangoStore();
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deletePhrase, setDeletePhrase] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   if (!ROTAS_PRINCIPAIS.includes(location.pathname)) return null;
-
-  const titulo = location.pathname === '/relatorios'
-    ? t('Relatórios')
-    : location.pathname === '/cartoes'
-      ? t('Cartões')
-      : location.pathname === '/perfil'
-        ? t('Editar perfil')
-        : location.pathname === '/landing'
-          ? 'Mango'
-          : t('Meus gastos');
 
   const avatar = perfil?.avatar ?? '';
   const avatarEhImagem = avatar.length > 0 && !/^[\p{Emoji}\s]+$/u.test(avatar);
@@ -54,7 +46,7 @@ export function Sidebar() {
     try {
       await apagarConta();
       setConfirmDeleteOpen(false);
-      setOpen(false);
+      onClose();
       navigate(supabaseConfigured ? '/login' : '/first-run', { replace: true });
     } catch (error) {
       setDeleteError(error instanceof Error ? error.message : String(error));
@@ -70,7 +62,7 @@ export function Sidebar() {
         if (error) throw error;
       }
       sessionStorage.removeItem('mango_developer_bypass');
-      setOpen(false);
+      onClose();
       navigate('/login', { replace: true });
     } catch (error) {
       setDeleteError(error instanceof Error ? error.message : String(error));
@@ -86,33 +78,11 @@ export function Sidebar() {
 
   return (
     <>
-      <header className="relative z-30 mx-auto flex w-full max-w-7xl items-center gap-4 px-4 pt-5 sm:px-8 sm:pt-8">
-        <button
-          type="button"
-          onClick={() => navigate(location.pathname === '/' ? '/landing' : '/')}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[var(--tema-text-secondary)] transition hover:bg-[var(--tema-surface-elevado)] hover:text-[var(--tema-text-primary)]"
-          aria-label={t('Voltar')}
-        >
-          <ArrowLeft className="h-6 w-6" />
-        </button>
-        <h1 className="min-w-0 flex-1 truncate text-[1.65rem] font-semibold tracking-tight text-[var(--tema-text-primary)] sm:text-3xl">
-          {titulo}
-        </h1>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-[var(--tema-text-primary)] transition hover:bg-[var(--tema-surface-elevado)]"
-          aria-label={t('Abrir menu')}
-        >
-          <Menu className="h-7 w-7" />
-        </button>
-      </header>
-
       {open && (
         <div
           className="fixed inset-0 z-[70] flex items-end bg-black/60 backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-6"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setOpen(false);
+            if (event.target === event.currentTarget) onClose();
           }}
         >
           <section
@@ -126,7 +96,7 @@ export function Sidebar() {
               <span className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Mango</span>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={onClose}
                 className="grid h-9 w-9 place-items-center rounded-full text-stone-400 hover:bg-white/10 hover:text-white"
                 aria-label={t('Fechar')}
               >
@@ -138,7 +108,7 @@ export function Sidebar() {
                 <Link
                   key={destino}
                   to={destino}
-                  onClick={() => setOpen(false)}
+                  onClick={onClose}
                   className="group flex items-center gap-4 rounded-2xl px-3 py-3.5 transition hover:bg-white/[0.06]"
                 >
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/[0.055] text-[var(--tema-accent)] transition group-hover:bg-[var(--tema-accent)]/15">
@@ -182,14 +152,14 @@ export function Sidebar() {
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => { setOpen(false); navigate('/relatorios'); }}
+                  onClick={() => { onClose(); navigate('/relatorios'); }}
                   className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-2.5 text-sm text-stone-300 transition hover:border-[var(--tema-accent)]/50 hover:text-white"
                 >
                   <ChartNoAxesCombined className="h-4 w-4" /> {t('Relatórios')}
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setOpen(false); navigate('/perfil'); }}
+                  onClick={() => { onClose(); navigate('/perfil'); }}
                   className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-2.5 text-sm text-stone-300 transition hover:border-[var(--tema-accent)]/50 hover:text-white"
                 >
                   <SlidersHorizontal className="h-4 w-4" /> {t('Preferências')}

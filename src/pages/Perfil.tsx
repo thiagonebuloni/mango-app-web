@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMangoStore } from '../store/useStore';
 import { Palette, Sun, Moon, Globe, Shield, User, Camera, Check, Smile } from 'lucide-react';
 import { aplicarTema } from '../utils/theme';
+import { BottomNav } from '../components/BottomNav';
 import type { TemaCor } from '../types/models';
 import { useI18n } from '../utils/i18n';
 
@@ -387,6 +388,7 @@ export function Perfil() {
           </button>
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }

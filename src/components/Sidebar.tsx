@@ -73,7 +73,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         throw new Error(t('Arquivo muito grande para importar. O limite é 16 MB.'));
       }
       const data = parseMangoCsv(await file.text());
-      if (data.expenses.length === 0 && data.cards.length === 0) {
+      if (data.expenses.length === 0 && data.cards.length === 0 && !data.profile) {
         throw new Error(t('O arquivo não contém lançamentos ou cartões para importar.'));
       }
       setPendingImport({ filename: file.name, data });
@@ -92,13 +92,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     setImportingCsv(true);
     setCsvFeedback(null);
     try {
-      await importarBackupCsv(pendingImport.data.expenses, pendingImport.data.cards);
+      await importarBackupCsv(
+        pendingImport.data.expenses,
+        pendingImport.data.cards,
+        pendingImport.data.profile,
+      );
       const { syncStatus } = useMangoStore.getState();
       const mensagemSync = syncStatus === 'pending'
         ? ` ${t('A sincronização com a nuvem está pendente; os dados foram salvos neste dispositivo.')}`
         : '';
       setCsvFeedback({
-        message: `${t('Lançamentos adicionados:')} ${pendingImport.data.expenses.length}. ${t('Cartões processados:')} ${pendingImport.data.cards.length}. ${pendingImport.data.skipped > 0 ? `${pendingImport.data.skipped} ${t('linhas ignoradas por estarem inválidas.')}` : ''}${mensagemSync}`,
+        message: `${t('Lançamentos adicionados:')} ${pendingImport.data.expenses.length}. ${t('Cartões processados:')} ${pendingImport.data.cards.length}. ${pendingImport.data.profile ? t('O perfil também foi atualizado.') : ''} ${pendingImport.data.skipped > 0 ? `${pendingImport.data.skipped} ${t('linhas ignoradas por estarem inválidas.')}` : ''}${mensagemSync}`,
         error: false,
       });
       setPendingImport(null);
@@ -233,7 +237,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 <div className="mx-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
                   <p className="truncate text-sm font-medium text-stone-100">{pendingImport.filename}</p>
                   <p className="mt-1 text-xs leading-relaxed text-stone-400">
-                    {t('Lançamentos encontrados:')} {pendingImport.data.expenses.length}. {t('Cartões encontrados:')} {pendingImport.data.cards.length}. {pendingImport.data.skipped > 0 ? `${pendingImport.data.skipped} ${t('linhas inválidas serão ignoradas.')}` : ''} {t('O perfil atual será mantido.')}
+                    {t('Lançamentos encontrados:')} {pendingImport.data.expenses.length}. {t('Cartões encontrados:')} {pendingImport.data.cards.length}. {pendingImport.data.profile ? t('O perfil também será atualizado.') : t('O perfil atual será mantido.')} {pendingImport.data.skipped > 0 ? `${pendingImport.data.skipped} ${t('linhas inválidas serão ignoradas.')}` : ''}
                   </p>
                   <div className="mt-3 flex gap-2">
                     <button

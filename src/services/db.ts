@@ -182,9 +182,10 @@ export async function insertExpensesBatch(expenses: ExpenseInput[]): Promise<voi
 export async function appendCsvBackupData(
   expenses: CsvExpenseInput[],
   cards: CartaoCreditoInput[],
+  profile: UserProfile | null,
 ): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(['expenses', 'cartoes'], 'readwrite');
+  const tx = db.transaction(['expenses', 'cartoes', 'perfil'], 'readwrite');
   const cardStore = tx.objectStore('cartoes');
   const existingCards = await cardStore.getAll();
   const cardIdsByKey = new Map(
@@ -216,6 +217,9 @@ export async function appendCsvBackupData(
       criadoEm: agora,
       atualizadoEm: agora,
     });
+  }
+  if (profile) {
+    await tx.objectStore('perfil').put({ ...profile, id: 'perfil' } as unknown as UserProfile);
   }
   await tx.done;
 }

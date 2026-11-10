@@ -132,18 +132,20 @@ export function CartaoForm() {
           </div>
         )}
 
-        <div className="relative mx-auto mb-6 flex aspect-[1.586/1] w-full max-w-[28rem] items-end overflow-hidden rounded-[1.7rem] p-5 text-white shadow-[0_16px_38px_rgba(70,24,150,.24)] sm:p-7" style={{ background: cardBackgroundForBank(banco) }}>
-          <div className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full border border-white/10" />
-          <div className="pointer-events-none absolute -right-2 -top-12 h-40 w-40 rounded-full border border-white/[0.08]" />
-          <div className="absolute right-5 top-5 grid h-12 w-[4.75rem] place-items-center rounded-lg bg-white shadow-lg sm:right-7 sm:top-7">
-            <CardNetworkLogo network={bandeira} className="h-10 w-16" />
-          </div>
-          <div className="relative min-w-0">
-            <p className="text-sm font-semibold text-white/65">{banco || t('Banco')}</p>
-            <p className="mt-1 truncate text-xl font-bold sm:text-2xl">{nome || t('Nome do cartão')}</p>
-            <p className="mt-3 text-xs text-white/75">
-              {t('Fecha em')} {diaFechamento} <span className="mx-1">·</span> {t('Pagamento em')} {diaPagamento}
-            </p>
+        <div className="-mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <div className="relative mx-auto flex h-[17.65rem] w-[28rem] shrink-0 items-end overflow-hidden rounded-[1.7rem] p-5 text-white shadow-[0_16px_38px_rgba(70,24,150,.24)] sm:p-7" style={{ background: cardBackgroundForBank(banco) }}>
+            <div className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full border border-white/10" />
+            <div className="pointer-events-none absolute -right-2 -top-12 h-40 w-40 rounded-full border border-white/[0.08]" />
+            <div className="absolute right-5 top-5 grid h-12 w-[4.75rem] place-items-center rounded-lg bg-white shadow-lg sm:right-7 sm:top-7">
+              <CardNetworkLogo network={bandeira} className="h-10 w-16" />
+            </div>
+            <div className="relative min-w-0">
+              <p className="text-sm font-semibold text-white/65">{banco || t('Banco')}</p>
+              <p className="mt-1 truncate text-xl font-bold sm:text-2xl">{nome || t('Nome do cartão')}</p>
+              <p className="mt-3 text-xs text-white/75">
+                {t('Fecha em')} {diaFechamento} <span className="mx-1">·</span> {t('Pagamento em')} {diaPagamento}
+              </p>
+            </div>
           </div>
         </div>
 

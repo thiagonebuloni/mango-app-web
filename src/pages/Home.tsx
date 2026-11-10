@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, TrendingDown, TrendingUp } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, TrendingDown, TrendingUp, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMangoStore } from '../store/useStore';
 import { formatMoney, monthYear, todayISO } from '../utils/format';
@@ -17,6 +17,7 @@ export function Home() {
     despesasLoading,
     meses,
     definirMesGastos,
+    excluirDespesa,
   } = useMangoStore();
 
   const [filtro, setFiltro] = useState<'dia' | 'semana' | 'mes'>('mes');
@@ -24,6 +25,9 @@ export function Home() {
   const [atalhosAbertos, setAtalhosAbertos] = useState(false);
   const [dialogYear, setDialogYear] = useState<number>(new Date().getFullYear());
   const [dialogMonth, setDialogMonth] = useState<number>(new Date().getMonth());
+  const [lancamentoParaExcluir, setLancamentoParaExcluir] = useState<(typeof despesas)[number] | null>(null);
+  const [excluindoLancamento, setExcluindoLancamento] = useState(false);
+  const [erroExclusaoLancamento, setErroExclusaoLancamento] = useState<string | null>(null);
 
   const mesAtual = meses.gastos; // YYYY-MM
 
@@ -62,6 +66,21 @@ export function Home() {
     const [ano, mes] = mesAtual.split('-').map(Number);
     const novoMes = new Date(ano, mes - 1 + delta, 1);
     definirMesGastos(`${novoMes.getFullYear()}-${String(novoMes.getMonth() + 1).padStart(2, '0')}`);
+  };
+
+  const confirmarExclusaoLancamento = async () => {
+    if (lancamentoParaExcluir?.id === undefined || excluindoLancamento) return;
+    setExcluindoLancamento(true);
+    setErroExclusaoLancamento(null);
+    try {
+      await excluirDespesa(lancamentoParaExcluir.id);
+      setLancamentoParaExcluir(null);
+    } catch (error) {
+      console.error('Erro ao excluir lançamento:', error);
+      setErroExclusaoLancamento(error instanceof Error ? error.message : t('Erro ao excluir lançamento'));
+    } finally {
+      setExcluindoLancamento(false);
+    }
   };
 
   return (
@@ -152,6 +171,10 @@ export function Home() {
                   key={e.id ?? e.estabelecimento + e.data}
                   expense={e}
                   onTap={() => navigate(`/despesa/editar/${e.id}`)}
+                  onDelete={() => {
+                    setErroExclusaoLancamento(null);
+                    setLancamentoParaExcluir(e);
+                  }}
                 />
               ))
           )}
@@ -198,6 +221,47 @@ export function Home() {
       </div>
 
       {/* Diálogo de seleção de mês */}
+      {lancamentoParaExcluir && (
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/75 p-4 backdrop-blur-sm">
+          <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-entry-title"
+            className="w-full max-w-md rounded-3xl border border-rose-400/20 bg-[#111312] p-6 text-stone-100 shadow-2xl"
+          >
+            <div className="flex items-center gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-rose-500/10 text-rose-300">
+                <Trash2 className="h-5 w-5" />
+              </span>
+              <h2 id="delete-entry-title" className="text-lg font-semibold">{t('Excluir lançamento')}</h2>
+            </div>
+            <p className="mt-4 text-sm leading-relaxed text-stone-300">
+              {t('Deseja excluir o lançamento')} <strong className="text-white">{lancamentoParaExcluir.estabelecimento}</strong>?
+            </p>
+            {erroExclusaoLancamento && (
+              <p role="alert" className="mt-3 break-words text-sm text-rose-300">{erroExclusaoLancamento}</p>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setLancamentoParaExcluir(null)}
+                disabled={excluindoLancamento}
+                className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-stone-300 hover:bg-white/5 disabled:opacity-50"
+              >
+                {t('Cancelar')}
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmarExclusaoLancamento()}
+                disabled={excluindoLancamento}
+                className="rounded-xl bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {excluindoLancamento ? t('Excluindo…') : t('Excluir lançamento')}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {mesDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-gray-900 rounded-xl p-6 max-w-sm w-full border border-gray-700">

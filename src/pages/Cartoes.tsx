@@ -117,92 +117,94 @@ export function Cartoes() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 2xl:gap-6">
-            {cartoesOrdenados.map((cartao) => {
-              const gasto = gastoMensalPorCartao.get(cartao.id ?? 0) ?? 0;
-              const limite = cartao.limiteCentavos ?? 0;
-              const pct = limite > 0 ? Math.min(100, (gasto / limite) * 100) : 0;
-              const usado = cartao.limiteCentavos != null && gasto > cartao.limiteCentavos;
-              const gradiente = cardBackgroundForBank(cartao.banco);
-              return (
-                <div
-                  key={cartao.id ?? cartao.nome + cartao.banco}
-                  className="overflow-hidden rounded-[1.7rem] border border-white/[0.07] bg-[#171615] shadow-[0_16px_40px_rgba(0,0,0,.2)]"
-                >
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/cartao/${cartao.id}`)}
-                    className="relative flex h-52 w-full flex-col justify-between overflow-hidden p-6 text-left text-white sm:h-60 sm:p-8 2xl:h-64"
-                    style={{ background: gradiente }}
+          <div className="overflow-x-auto pb-2">
+            <div className="flex flex-wrap justify-start gap-5 sm:justify-center 2xl:gap-6">
+              {cartoesOrdenados.map((cartao) => {
+                const gasto = gastoMensalPorCartao.get(cartao.id ?? 0) ?? 0;
+                const limite = cartao.limiteCentavos ?? 0;
+                const pct = limite > 0 ? Math.min(100, (gasto / limite) * 100) : 0;
+                const usado = cartao.limiteCentavos != null && gasto > cartao.limiteCentavos;
+                const gradiente = cardBackgroundForBank(cartao.banco);
+                return (
+                  <div
+                    key={cartao.id ?? cartao.nome + cartao.banco}
+                    className="w-[28rem] shrink-0 overflow-hidden rounded-[1.7rem] border border-white/[0.07] bg-[#171615] shadow-[0_16px_40px_rgba(0,0,0,.2)]"
                   >
-                    <span className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full border border-white/10" />
-                    <span className="pointer-events-none absolute -bottom-28 -left-10 h-60 w-60 rounded-full border border-white/10" />
-                    <div className="relative flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-xl font-bold">{cartao.banco}</p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/65">{t(cartao.bandeira)}</p>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/cartao/${cartao.id}`)}
+                      className="relative flex h-[17.65rem] w-[28rem] shrink-0 flex-col justify-between overflow-hidden p-6 text-left text-white sm:p-8"
+                      style={{ background: gradiente }}
+                    >
+                      <span className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full border border-white/10" />
+                      <span className="pointer-events-none absolute -bottom-28 -left-10 h-60 w-60 rounded-full border border-white/10" />
+                      <div className="relative flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-xl font-bold">{cartao.banco}</p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/65">{t(cartao.bandeira)}</p>
+                        </div>
+                        <span className="grid h-12 w-[4.75rem] place-items-center rounded-xl bg-white shadow-lg">
+                          <CardNetworkLogo network={cartao.bandeira} className="h-10 w-16" />
+                        </span>
                       </div>
-                      <span className="grid h-12 w-[4.75rem] place-items-center rounded-xl bg-white shadow-lg">
-                        <CardNetworkLogo network={cartao.bandeira} className="h-10 w-16" />
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <h3 className="text-2xl font-bold tracking-tight">{cartao.nome}</h3>
-                      <p className="mt-2 text-sm text-white/75">
-                        {t('Fecha em')} {dataDoCiclo(mesCartoes, cartao.diaFechamento, idioma)} <span className="mx-1.5">·</span> {t('Pagamento em')} {dataDoCiclo(mesCartoes, cartao.diaPagamento, idioma)}
-                      </p>
-                    </div>
-                  </button>
-                  <div className="p-5 sm:p-6">
-                    <div className="flex items-end justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-medium text-stone-400">{t('Total da fatura')}</p>
-                        <p className="mt-1 text-3xl font-bold tracking-tight text-stone-100">{formatMoney(gasto, idioma)}</p>
-                        <p className="mt-1 text-sm text-stone-400">
-                          {gasto > 0 ? t('Gastos neste mês') : t('Sem gastos neste mês')}
+                      <div className="relative">
+                        <h3 className="text-2xl font-bold tracking-tight">{cartao.nome}</h3>
+                        <p className="mt-2 text-sm text-white/75">
+                          {t('Fecha em')} {dataDoCiclo(mesCartoes, cartao.diaFechamento, idioma)} <span className="mx-1.5">·</span> {t('Pagamento em')} {dataDoCiclo(mesCartoes, cartao.diaPagamento, idioma)}
                         </p>
                       </div>
-                      <div className="flex shrink-0 items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/cartao/editar/${cartao.id}`)}
-                          className="grid h-10 w-10 place-items-center rounded-xl text-stone-400 transition hover:bg-white/[0.06] hover:text-white"
-                          aria-label={`${t('Editar cartão')}: ${cartao.nome}`}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setErroExclusao(null);
-                            setCartaoParaExcluir(cartao);
-                          }}
-                          className="grid h-10 w-10 place-items-center rounded-xl text-rose-300/80 transition hover:bg-rose-500/10 hover:text-rose-200"
-                          aria-label={`${t('Excluir cartão')}: ${cartao.nome}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                    </button>
+                    <div className="p-5 sm:p-6">
+                      <div className="flex items-end justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-medium text-stone-400">{t('Total da fatura')}</p>
+                          <p className="mt-1 text-3xl font-bold tracking-tight text-stone-100">{formatMoney(gasto, idioma)}</p>
+                          <p className="mt-1 text-sm text-stone-400">
+                            {gasto > 0 ? t('Gastos neste mês') : t('Sem gastos neste mês')}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/cartao/editar/${cartao.id}`)}
+                            className="grid h-10 w-10 place-items-center rounded-xl text-stone-400 transition hover:bg-white/[0.06] hover:text-white"
+                            aria-label={`${t('Editar cartão')}: ${cartao.nome}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setErroExclusao(null);
+                              setCartaoParaExcluir(cartao);
+                            }}
+                            className="grid h-10 w-10 place-items-center rounded-xl text-rose-300/80 transition hover:bg-rose-500/10 hover:text-rose-200"
+                            aria-label={`${t('Excluir cartão')}: ${cartao.nome}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
+                      {limite > 0 && (
+                        <>
+                          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className={`h-full rounded-full transition-all ${usado ? 'bg-rose-400' : 'bg-[var(--tema-accent)]'}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <div className="mt-2 flex items-center justify-between gap-3 text-xs text-stone-400">
+                            <span>{t('Disponível')}: {formatMoney(Math.max(0, limite - gasto), idioma)}</span>
+                            {usado && <span className="font-semibold text-rose-300">{t('Limite estourado')}</span>}
+                            {!usado && <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{t('Limite')}: {formatMoney(limite, idioma)}</span>}
+                          </div>
+                        </>
+                      )}
                     </div>
-                    {limite > 0 && (
-                      <>
-                        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                          <div
-                            className={`h-full rounded-full transition-all ${usado ? 'bg-rose-400' : 'bg-[var(--tema-accent)]'}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-stone-400">
-                          <span>{t('Disponível')}: {formatMoney(Math.max(0, limite - gasto), idioma)}</span>
-                          {usado && <span className="font-semibold text-rose-300">{t('Limite estourado')}</span>}
-                          {!usado && <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{t('Limite')}: {formatMoney(limite, idioma)}</span>}
-                        </div>
-                      </>
-                    )}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
         {cartoesOrdenados.length > 0 && (

@@ -21,6 +21,7 @@ export interface CsvExpenseInput extends ExpenseInput {
 export interface MangoCsvImport {
   expenses: CsvExpenseInput[];
   cards: CartaoCreditoInput[];
+  profile: UserProfile | null;
   skipped: number;
 }
 
@@ -155,6 +156,35 @@ function parseCard(record: string[]): CartaoCreditoInput | null {
   return { banco, nome, bandeira, diaFechamento, diaPagamento, limiteCentavos };
 }
 
+function parseProfile(record: string[]): UserProfile | null {
+  const fields: Record<string, string> = {};
+  for (const field of record.slice(1)) {
+    const separator = field.indexOf('=');
+    if (separator <= 0) continue;
+    fields[field.slice(0, separator).trim().toLowerCase()] = field.slice(separator + 1).trim();
+  }
+
+  const username = fields.nome ?? '';
+  const avatar = fields.avatar ?? '';
+  const colorArgb = Number(fields.cor);
+  if (
+    username.length > 40
+    || avatar.length > 64
+    || !Number.isSafeInteger(colorArgb)
+    || colorArgb < 0
+    || colorArgb > 0xffffffff
+  ) return null;
+
+  return {
+    username,
+    avatar,
+    corFundo: colorArgb & 0xffffff,
+    temaClaro: fields.tema?.toLowerCase() === 'claro',
+    temaCor: 'soft-pastel',
+    idioma: 'pt-BR',
+  };
+}
+
 function parseExpense(record: string[], hasCardColumn: boolean): CsvExpenseInput | null {
   const [type, centsValue, dateTime, categoryName, paymentName, notes, merchant] = record;
   const typeValue = type?.trim().toLowerCase();
@@ -194,10 +224,14 @@ export function parseMangoCsv(text: string): MangoCsvImport {
   const expenses: CsvExpenseInput[] = [];
   const cards: CartaoCreditoInput[] = [];
   let skipped = 0;
+  let profile: UserProfile | null = null;
 
   for (const record of records) {
     if (record[0].startsWith('#')) {
-      if (record[0] === '# CARTAO') {
+      if (record[0] === '# PERFIL') {
+        profile = parseProfile(record);
+        if (!profile) skipped += 1;
+      } else if (record[0] === '# CARTAO') {
         const card = parseCard(record);
         if (card) cards.push(card);
         else skipped += 1;
@@ -225,5 +259,5 @@ export function parseMangoCsv(text: string): MangoCsvImport {
   }
 
   if (!header) throw new Error('Cabeçalho CSV Mango v2/v3 não encontrado.');
-  return { expenses, cards, skipped };
+  return { expenses, cards, profile, skipped };
 }

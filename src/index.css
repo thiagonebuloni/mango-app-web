@@ -7,10 +7,10 @@
     color-scheme: dark;
     --color-background: var(--background-dark);
     --color-foreground: var(--foreground-dark);
-    --background-light: 255 255 255;
-    --background-dark: 13 15 15;
-    --foreground-light: 24 24 27;
-    --foreground-dark: 244 244 245;
+    --background-light: #ffffff;
+    --background-dark: #0d0f0f;
+    --foreground-light: #202927;
+    --foreground-dark: #f4f4f5;
 
     /* Tema de cores padrão (soft-pastel) */
     --tema-primary: #0D0F0F;
@@ -31,6 +31,7 @@
     min-height: 100vh;
     font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
+    transition: background-color 180ms ease, color 180ms ease;
   }
 
   #root {
@@ -41,13 +42,44 @@
 
   /* Light theme */
   .light {
-    --color-background: var(--background-light);
-    --color-foreground: var(--foreground-light);
+    --color-background: var(--tema-cor-fundo, var(--background-light));
+    --color-foreground: var(--tema-text-primary, var(--foreground-light));
   }
 
   /* Dark theme */
   .dark {
-    --color-background: var(--background-dark);
-    --color-foreground: var(--foreground-dark);
+    --color-background: #0d0f0f;
+    --color-foreground: #f4f4f5;
+  }
+
+  .light [class*="bg-[#"],
+  .light [class*="bg-[color-mix(in_srgb,var(--tema-accent)"] {
+    background-color: var(--tema-surface) !important;
+  }
+
+  .light [class*="text-white/"]:not([data-theme-contrast="inverse"]):not([data-theme-contrast="inverse"] *) {
+    color: var(--tema-text-secondary) !important;
+  }
+
+  .light [class*="text-white"]:not([class*="bg-[var(--tema-accent)]"]):not([data-theme-contrast="inverse"]):not([data-theme-contrast="inverse"] *) {
+    color: var(--tema-text-primary) !important;
+  }
+
+  .light [data-theme-contrast="inverse"],
+  .light [data-theme-contrast="inverse"] [class*="text-white"] {
+    color: #ffffff !important;
+  }
+
+  .light [class*="text-stone-"] {
+    color: var(--tema-text-secondary) !important;
+  }
+
+  .light [class*="border-white"],
+  .light [class*="border-[#"] {
+    border-color: var(--tema-border) !important;
+  }
+
+  .light [class*="bg-black/"]:not([class*="bg-black/60"]):not([class*="bg-black/75"]) {
+    background-color: color-mix(in srgb, var(--tema-accent) 7%, var(--tema-surface)) !important;
   }
 }

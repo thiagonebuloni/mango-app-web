@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, TrendingDown, TrendingUp, Trash2 } from 'lucide-react';
+import { Plus, ArrowLeft, ChevronLeft, ChevronRight, TrendingDown, TrendingUp, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMangoStore } from '../store/useStore';
 import { formatMoney, monthYear, todayISO } from '../utils/format';
@@ -84,47 +84,23 @@ export function Home() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-background px-4 pb-32 pt-5 text-foreground sm:px-6 sm:pt-8">
-      {/* Cabeçalho */}
-      <div className="mx-auto mb-7 flex w-full max-w-7xl flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--tema-accent)]">{t('Visão geral')}</p>
-          <h2 className="text-3xl font-semibold tracking-tight text-[var(--tema-text-primary)] lg:text-4xl">{t('Seus gastos, com clareza.')}</h2>
-          <p className="mt-2 text-sm text-[var(--tema-text-secondary)]">
-            {t('Acompanhe o ritmo do seu dinheiro.')}
-          </p>
-        </div>
-        <div className="flex w-full items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.025] px-3 py-2 lg:max-w-md">
-          <button
-            onClick={() => mudarMes(-1)}
-            className="grid h-10 w-10 place-items-center rounded-xl text-stone-400 transition hover:bg-white/[0.06] hover:text-white"
-            aria-label={t('Mês anterior')}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => {
-              setDialogYear(anoAtual);
-              setDialogMonth(mesAtualNum - 1);
-              setMesDialog(true);
-            }}
-            className="flex min-w-0 flex-col items-center px-3 py-1"
-          >
-            <span className="text-base font-semibold capitalize text-stone-100">{monthYear(`${mesAtual}-01`, idioma)}</span>
-            <span className="mt-0.5 text-xs text-stone-500">{formatMoney(totalDespesas, idioma)} {t('em despesas')}</span>
-          </button>
-          <button
-            onClick={() => mudarMes(1)}
-            className="grid h-10 w-10 place-items-center rounded-xl text-stone-400 transition hover:bg-white/[0.06] hover:text-white"
-            aria-label={t('Próximo mês')}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
+    <div className="min-h-[calc(100vh-4.25rem)] bg-background px-3 pb-28 pt-2.5 text-foreground sm:px-6 sm:pt-5">
+      <header className="mx-auto mb-4 flex w-full max-w-7xl items-center justify-between sm:mb-6">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          aria-label={t('Voltar')}
+          className="grid h-10 w-10 place-items-center rounded-full text-[var(--tema-text-primary)] transition hover:bg-[var(--tema-surface-elevado)]"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <h1 className="flex-1 px-2 text-xl font-semibold tracking-tight text-[var(--tema-text-primary)] sm:text-2xl">
+          {t('Meus gastos')}
+        </h1>
+      </header>
 
       {/* Cards de resumo */}
-      <div className="mx-auto mb-6 grid w-full max-w-7xl grid-cols-3 gap-2.5 sm:gap-4 lg:mb-8 lg:gap-5">
+      <div className="mx-auto mb-4 grid w-full max-w-7xl grid-cols-3 gap-2 sm:mb-5 sm:gap-4 lg:gap-5">
         <SummaryCard
           label="Dia"
           value={totalDia}
@@ -145,21 +121,43 @@ export function Home() {
         />
       </div>
 
+      <div className="mx-auto mb-3 flex w-full max-w-7xl items-center justify-between">
+        <button
+          onClick={() => mudarMes(-1)}
+          className="grid h-10 w-10 place-items-center rounded-full text-[var(--tema-text-secondary)] transition hover:bg-[var(--tema-surface-elevado)]"
+          aria-label={t('Mês anterior')}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          onClick={() => {
+            setDialogYear(anoAtual);
+            setDialogMonth(mesAtualNum - 1);
+            setMesDialog(true);
+          }}
+          className="flex min-w-0 flex-col items-center px-3 py-1"
+        >
+          <span className="text-sm font-bold capitalize text-[var(--tema-text-primary)] sm:text-base">{monthYear(`${mesAtual}-01`, idioma)}</span>
+          <span className="mt-0.5 text-xs text-[var(--tema-text-secondary)]">{formatMoney(totalDespesas, idioma)}</span>
+        </button>
+        <button
+          onClick={() => mudarMes(1)}
+          className="grid h-10 w-10 place-items-center rounded-full text-[var(--tema-text-secondary)] transition hover:bg-[var(--tema-surface-elevado)]"
+          aria-label={t('Próximo mês')}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+
       {/* Lista de despesas */}
       <div className="mx-auto grid w-full max-w-7xl gap-6 xl:grid-cols-[minmax(0,1.8fr)_minmax(17rem,.8fr)]">
       <section className="min-w-0">
-        <div className="mb-3 flex items-end justify-between px-1">
-          <div>
-            <h2 className="text-lg font-semibold text-[var(--tema-text-primary)]">{t('Lançamentos')}</h2>
-            <p className="text-xs text-[var(--tema-text-secondary)]">{t(filtro === 'dia' ? 'Hoje' : filtro === 'semana' ? 'Esta semana' : 'Este mês')}</p>
-          </div>
-          <span className="text-xs text-stone-500">{visiveis.length} {t('itens')}</span>
-        </div>
-        <div className="divide-y divide-white/[0.06]">
+        <h2 className="sr-only">{t('Lançamentos')}</h2>
+        <div className="divide-y divide-[var(--tema-border)]/50">
           {despesasLoading ? (
-            <div className="py-10 text-center text-stone-400">{t('Carregando...')}</div>
+            <div className="py-10 text-center text-[var(--tema-text-secondary)]">{t('Carregando...')}</div>
           ) : visiveis.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/10 py-12 text-center text-stone-500">
+            <div className="rounded-2xl border border-dashed border-[var(--tema-border)] py-12 text-center text-[var(--tema-text-secondary)]">
               {t('Nenhum lançamento neste período.')}
             </div>
           ) : (
@@ -192,7 +190,7 @@ export function Home() {
       </aside>
       </div>
 
-      <div className="fixed bottom-24 right-5 z-[60] flex flex-col items-end gap-3 sm:bottom-28 sm:right-[max(calc((100vw-64rem)/2),2rem)] lg:bottom-8 lg:right-[max(calc((100vw-80rem)/2),2rem)]">
+      <div className="fixed bottom-[5.25rem] right-4 z-[60] flex flex-col items-end gap-3 sm:bottom-28 sm:right-[max(calc((100vw-64rem)/2),2rem)] lg:bottom-8 lg:right-[max(calc((100vw-80rem)/2),2rem)]">
         {atalhosAbertos && (
           <div className="flex flex-col items-end gap-2">
             <button
@@ -214,7 +212,7 @@ export function Home() {
           onClick={() => setAtalhosAbertos((open) => !open)}
           aria-label={atalhosAbertos ? t('Fechar atalhos') : t('Novo lançamento')}
           aria-expanded={atalhosAbertos}
-          className="grid h-[4.5rem] w-[4.5rem] place-items-center rounded-[1.65rem] bg-[var(--tema-accent)] text-white shadow-[0_12px_34px_color-mix(in_srgb,var(--tema-accent)_40%,transparent)] transition hover:scale-[1.04] active:scale-95"
+          className="grid h-[4.5rem] w-[4.5rem] place-items-center rounded-[1.65rem] bg-[var(--tema-accent)] text-white shadow-[0_12px_34px_color-mix(in_srgb,var(--tema-accent)_40%,transparent)] transition hover:scale-[1.04] active:scale-95 sm:h-[4.5rem] sm:w-[4.5rem]"
         >
           <Plus className={`h-8 w-8 transition-transform ${atalhosAbertos ? 'rotate-45' : ''}`} />
         </button>

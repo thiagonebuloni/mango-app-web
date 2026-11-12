@@ -2,42 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMangoStore } from '../store/useStore';
 import { Camera, Check, CheckCircle2, Globe, Moon, Palette, Sun, User } from 'lucide-react';
-import { aplicarTema } from '../utils/theme';
-import type { TemaCor } from '../types/models';
+import { aplicarTema, CORES_FUNDO_PASTEL, corParaTemaCor } from '../utils/theme';
 import { useI18n } from '../utils/i18n';
 import { errorMessage } from '../services/error-message';
 
-interface CorOpcao {
-  nome: string;
-  valor: string;
-}
-
-const CORES: CorOpcao[] = [
-  { nome: 'Verde-água', valor: '#0E4F4A' },
-  { nome: 'Azul', valor: '#1E3A5F' },
-  { nome: 'Lilás', valor: '#3B2366' },
-  { nome: 'Rosa', valor: '#6B1E3A' },
-  { nome: 'Pêssego', valor: '#7A4A12' },
-  { nome: 'Verde', valor: '#14532D' },
-  { nome: 'Amarelo', valor: '#5C4A0E' },
-  { nome: 'Cinza', valor: '#33393B' },
-];
+const CORES = CORES_FUNDO_PASTEL;
 
 const AVATARES = ['🙂', '😄', '😎', '🤓', '🥳', '🤩', '🐱', '🐶', '🦊', '🐼', '🦁', '🐸', '🌟', '🍀'];
-
-function corParaTemaCor(corHex: string): TemaCor {
-  const mapa: Record<string, TemaCor> = {
-    '#0e4f4a': 'forest-green',
-    '#1e3a5f': 'ocean-blue',
-    '#3b2366': 'lavender-mist',
-    '#6b1e3a': 'sunset-warm',
-    '#7a4a12': 'sunset-warm',
-    '#14532d': 'forest-green',
-    '#5c4a0e': 'sunset-warm',
-    '#33393b': 'soft-pastel',
-  };
-  return mapa[corHex.toLowerCase()] ?? 'soft-pastel';
-}
 
 export function FirstRun() {
   const navigate = useNavigate();

@@ -2,48 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMangoStore } from '../store/useStore';
 import { Palette, Sun, Moon, Globe, User, Camera, Check, Smile } from 'lucide-react';
-import { aplicarTema } from '../utils/theme';
+import { aplicarTema, CORES_FUNDO_PASTEL, corFundoNoTema, corParaTemaCor, normalizarCorFundo } from '../utils/theme';
 import { BottomNav } from '../components/BottomNav';
 import type { TemaCor } from '../types/models';
 import { useI18n } from '../utils/i18n';
 
-interface CorOpcao {
-  nome: string;
-  valor: string;
-}
-
-const CORES: CorOpcao[] = [
-  { nome: 'Verde-água', valor: '#0E4F4A' },
-  { nome: 'Azul', valor: '#1E3A5F' },
-  { nome: 'Lilás', valor: '#3B2366' },
-  { nome: 'Rosa', valor: '#6B1E3A' },
-  { nome: 'Pêssego', valor: '#7A4A12' },
-  { nome: 'Verde', valor: '#14532D' },
-  { nome: 'Amarelo', valor: '#5C4A0E' },
-  { nome: 'Cinza', valor: '#33393B' },
-];
+const CORES = CORES_FUNDO_PASTEL;
 
 const AVATARES = [
   '🙂', '😀', '😄', '😁', '😎', '🤓', '🥳', '🤩', '😇', '🥰', '🤔', '😴', '🤗', '😺',
   '🐱', '🐶', '🦊', '🐼', '🦁', '🐸', '🐵', '🐰', '🐻', '🐨', '🐯', '🐮', '🐷', '🐧',
   '🌟', '✨', '🌈', '☀️', '🌙', '🍀', '🌻', '🌸', '🍓', '🍉', '🍕', '☕', '🎵', '⚽',
 ];
-
-// Mapeia a cor de fundo selecionada para o nome do tema mais próximo
-function corParaTemaCor(corHex: string): TemaCor {
-  const c = corHex.toLowerCase();
-  const mapa: Record<string, TemaCor> = {
-    '#0e4f4a': 'forest-green',
-    '#1e3a5f': 'ocean-blue',
-    '#3b2366': 'lavender-mist',
-    '#6b1e3a': 'sunset-warm',
-    '#7a4a12': 'sunset-warm',
-    '#14532d': 'forest-green',
-    '#5c4a0e': 'sunset-warm',
-    '#33393b': 'soft-pastel',
-  };
-  return mapa[c] ?? 'soft-pastel';
-}
 
 export function Perfil() {
   const navigate = useNavigate();
@@ -64,7 +34,7 @@ export function Perfil() {
   const [temaCor, setTemaCor] = useState<TemaCor>(temaCorInicial);
   const [corSelecionada, setCorSelecionada] = useState<string>(
     perfil
-      ? `#${(perfil.corFundo & 0xffffff).toString(16).padStart(6, '0')}`
+      ? normalizarCorFundo(`#${(perfil.corFundo & 0xffffff).toString(16).padStart(6, '0')}`)
       : CORES[0].valor,
   );
   const [idioma, setIdioma] = useState<'pt-BR' | 'en-US'>(
@@ -81,7 +51,7 @@ export function Perfil() {
 
   useEffect(() => {
     if (!perfil) return;
-    const corSalva = `#${(perfil.corFundo & 0xffffff).toString(16).padStart(6, '0')}`;
+    const corSalva = normalizarCorFundo(`#${(perfil.corFundo & 0xffffff).toString(16).padStart(6, '0')}`);
     setTemaClaro(perfil.temaClaro);
     setTemaCor(perfil.temaCor ?? corParaTemaCor(corSalva));
     setCorSelecionada(corSalva);
@@ -264,27 +234,34 @@ export function Perfil() {
               </span>
             </div>
             <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
-              {CORES.map((c) => (
-                <button
-                  key={c.nome}
-                  onClick={() => {
-                    setCorSelecionada(c.valor);
-                    setTemaCor(corParaTemaCor(c.valor));
-                  }}
-                  className={`aspect-square rounded-full border-2 transition-all ${
-                    corSelecionada === c.valor
-                      ? 'ring-2 ring-[var(--tema-text-primary)] ring-offset-2 ring-offset-[var(--tema-surface)] scale-105'
-                      : 'border-[var(--tema-border)] hover:border-[var(--tema-text-secondary)]'
-                  }`}
-                  style={{
-                    backgroundColor: c.valor,
-                    borderColor: c.valor,
-                  }}
-                  title={t(c.nome)}
-                  aria-label={t(c.nome)}
-                  aria-pressed={corSelecionada === c.valor}
-                />
-              ))}
+              {CORES.map((c) => {
+                const selecionada = normalizarCorFundo(corSelecionada) === c.valor;
+                const corAmostra = corFundoNoTema(c.valor, temaClaro);
+                const corBorda = `color-mix(in srgb, ${corAmostra} ${temaClaro ? '68%' : '72%'}, ${temaClaro ? '#27312e' : '#ffffff'})`;
+                return (
+                  <button
+                    key={c.nome}
+                    type="button"
+                    onClick={() => {
+                      setCorSelecionada(c.valor);
+                      setTemaCor(corParaTemaCor(c.valor));
+                    }}
+                    className={`aspect-square rounded-full border-2 transition-all ${
+                      selecionada
+                        ? 'scale-105 ring-2 ring-[var(--tema-text-primary)] ring-offset-2 ring-offset-[var(--tema-surface)]'
+                        : 'hover:scale-105'
+                    }`}
+                    style={{
+                      backgroundColor: corAmostra,
+                      borderColor: corBorda,
+                      boxShadow: `inset 0 0 0 1px ${corBorda}`,
+                    }}
+                    title={t(c.nome)}
+                    aria-label={t(c.nome)}
+                    aria-pressed={selecionada}
+                  />
+                );
+              })}
             </div>
           </div>
 
@@ -336,7 +313,7 @@ export function Perfil() {
           <button
             onClick={salvar}
             disabled={enviando}
-            className="w-full py-3 rounded-lg bg-[var(--tema-accent)] hover:bg-[var(--tema-accent)]/90 disabled:opacity-50 text-sm font-medium"
+            className="w-full py-3 rounded-lg bg-[var(--tema-accent)] hover:bg-[var(--tema-accent)]/90 disabled:opacity-50 text-sm font-medium text-white"
           >
             {enviando ? t('Salvando…') : t('Salvar configurações')}
           </button>

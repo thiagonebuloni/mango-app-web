@@ -5,6 +5,7 @@ export type Idioma = 'pt-BR' | 'en-US';
 const traducoesEn: Record<string, string> = {
   'Início': 'Home',
   'Gastos': 'Expenses',
+  'Meus gastos': 'My expenses',
   'Despesas': 'Expenses',
   'Receitas': 'Income',
   'Saldo': 'Balance',

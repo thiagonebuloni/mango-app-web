@@ -12,8 +12,9 @@ export function CartaoDetalhe() {
   const { id } = useParams<{ id: string }>();
   const cartaoId = id ? Number(id) : undefined;
 
-  const { despesas, meses, definirMesCartoes } = useMangoStore();
+  const { despesas, cartoes, meses, definirMesCartoes } = useMangoStore();
   const mesCartoes = meses.cartoes;
+  const cartao = cartoes.find((item) => item.id === cartaoId);
 
   const despesasMes = useMemo(() => {
     return despesas.filter((e) => e.data.startsWith(mesCartoes));
@@ -49,11 +50,7 @@ export function CartaoDetalhe() {
     return groups;
   }, [despesasDoCartao]);
 
-  const diaMax = Math.max(
-    1,
-    ...Object.keys(groupByDay).map((d) => Number(d)),
-    1,
-  );
+  const diaMax = Math.max(1, ...Object.values(groupByDay));
 
   const irParaAtual = (): void => {
     const hoje = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
@@ -62,19 +59,19 @@ export function CartaoDetalhe() {
 
   if (cartaoId == null) {
     return (
-      <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-gray-400">{t('Cartão não informado.')}</p>
+      <div className="min-h-screen bg-background p-4 text-foreground sm:p-6">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-6 text-center">
+          <p className="text-[var(--tema-text-secondary)]">{t('Cartão não informado.')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-background px-4 pb-28 pt-5 text-foreground sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={() => navigate('/cartoes')}
@@ -83,44 +80,46 @@ export function CartaoDetalhe() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <div>
-              <h1 className="text-2xl font-bold">{cartaoId}</h1>
-              <p className="text-gray-400 text-sm">
-                {monthYear(`${mesCartoes}-01`, idioma)}
+            <div className="min-w-0">
+              <h1 className="truncate text-2xl font-bold tracking-tight text-[var(--tema-text-primary)]">
+                {cartao?.nome ?? t('Cartão')}
+              </h1>
+              <p className="mt-0.5 text-sm capitalize text-[var(--tema-text-secondary)]">
+                {cartao ? `${cartao.banco} · ` : ''}{monthYear(`${mesCartoes}-01`, idioma)}
               </p>
             </div>
           </div>
           <button
             onClick={irParaAtual}
-            className="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 hover:bg-gray-700 text-sm"
+            className="self-start rounded-xl border border-[var(--tema-border)] bg-[var(--tema-surface)] px-4 py-2.5 text-sm font-medium text-[var(--tema-text-primary)] transition hover:bg-[var(--tema-surface-elevado)] sm:self-auto"
           >
             {t('Mês atual')}
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="rounded-xl border border-gray-800 bg-gray-900/40 p-4">
-            <div className="text-sm text-gray-400">{t('Total gasto')}</div>
-            <div className="text-xl font-bold text-white">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 shadow-sm">
+            <div className="text-sm font-medium text-[var(--tema-text-secondary)]">{t('Total gasto')}</div>
+            <div className="mt-1 text-2xl font-bold tracking-tight text-[var(--tema-text-primary)]">
               {formatMoney(total, idioma)}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="rounded-xl border border-gray-800 bg-gray-900/40 p-5">
-            <h2 className="text-lg font-semibold mb-4">{t('Por categoria')}</h2>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
+          <section className="rounded-2xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 shadow-sm sm:p-6">
+            <h2 className="mb-5 text-lg font-semibold text-[var(--tema-text-primary)]">{t('Por categoria')}</h2>
             <div className="space-y-4">
               {CATEGORY_DESPESAS.map((cat) => {
                 const valor = groupByCategory[cat] ?? 0;
                 const pct = total > 0 ? (valor / total) * 100 : 0;
                 return (
                   <div key={cat}>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-300">{t(CATEGORY_LABELS[cat])}</span>
-                      <span className="text-gray-400">{formatMoney(valor, idioma)}</span>
+                    <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
+                      <span className="truncate text-[var(--tema-text-primary)]">{t(CATEGORY_LABELS[cat])}</span>
+                      <span className="shrink-0 text-[var(--tema-text-secondary)]">{formatMoney(valor, idioma)}</span>
                     </div>
-                    <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
+                    <div className="h-2 overflow-hidden rounded-full bg-[var(--tema-surface-elevado)]">
                       <div
                         className="h-full rounded-full bg-[var(--tema-accent)]"
                         style={{ width: `${Math.max(0, pct)}%` }}
@@ -132,8 +131,8 @@ export function CartaoDetalhe() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-gray-800 bg-gray-900/40 p-5">
-            <h2 className="text-lg font-semibold mb-4">{t('Por dia')}</h2>
+          <section className="rounded-2xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 shadow-sm sm:p-6">
+            <h2 className="mb-5 text-lg font-semibold text-[var(--tema-text-primary)]">{t('Por dia')}</h2>
             <div className="space-y-4">
               {Object.keys(groupByDay)
                 .sort((a, b) => a.localeCompare(b))
@@ -142,13 +141,13 @@ export function CartaoDetalhe() {
                   const pct = (valor / diaMax) * 100;
                   return (
                     <div key={dia}>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-gray-300">{formatDateOf(dia, idioma)}</span>
-                        <span className="text-gray-400">{formatMoney(valor, idioma)}</span>
+                      <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
+                          <span className="text-[var(--tema-text-primary)]">{formatDateOf(dia, idioma)}</span>
+                          <span className="shrink-0 text-[var(--tema-text-secondary)]">{formatMoney(valor, idioma)}</span>
                       </div>
-                      <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
+                        <div className="h-2 overflow-hidden rounded-full bg-[var(--tema-surface-elevado)]">
                         <div
-                          className="h-full rounded-full bg-green-600"
+                            className="h-full rounded-full bg-[var(--tema-accent)]"
                           style={{ width: `${Math.max(4, pct)}%` }}
                         />
                       </div>
@@ -156,7 +155,7 @@ export function CartaoDetalhe() {
                   );
                 })}
               {Object.keys(groupByDay).length === 0 && (
-                <div className="text-center py-8 text-gray-500">
+                <div className="py-8 text-center text-sm text-[var(--tema-text-secondary)]">
                   {t('Nenhum gasto registrado para este cartão neste mês.')}
                 </div>
               )}

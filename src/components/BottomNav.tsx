@@ -16,8 +16,8 @@ export function BottomNav() {
   const openMenu = useContext(SidebarMenuContext);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(.6rem+env(safe-area-inset-bottom))] pt-2 sm:bottom-5 sm:px-6 sm:pb-0">
-      <div className="mx-auto flex max-w-md items-center justify-around rounded-[1.4rem] border border-white/[0.08] bg-[#111312]/95 px-2 py-2 shadow-[0_12px_42px_rgba(0,0,0,.4)] backdrop-blur-xl sm:max-w-xl sm:px-4 sm:py-3">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--tema-border)]/60 bg-[var(--tema-surface)]/95 px-2 pb-[calc(.3rem+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl sm:inset-x-5 sm:bottom-5 sm:mx-auto sm:max-w-xl sm:rounded-2xl sm:border sm:px-4 sm:py-2 sm:shadow-xl">
+      <div className="mx-auto flex max-w-md items-center justify-around sm:max-w-xl">
         {TABS.map((tab) => {
           const ativo = location.pathname === tab.to;
           const Icon = tab.icon;
@@ -26,8 +26,8 @@ export function BottomNav() {
               key={tab.to}
               to={tab.to}
               aria-current={ativo ? 'page' : undefined}
-              className={`flex min-w-[4rem] flex-col items-center gap-1 rounded-full px-2 py-2 text-[11px] transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-sm ${
-                ativo ? 'bg-[var(--tema-accent)]/20 text-[var(--tema-accent)]' : 'text-stone-400 hover:text-stone-100'
+              className={`flex min-w-[4rem] flex-col items-center gap-0.5 rounded-xl px-3 py-1 text-[11px] transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-6 sm:py-2.5 sm:text-sm ${
+                ativo ? 'bg-[var(--tema-accent)]/10 text-[var(--tema-accent)]' : 'text-[var(--tema-text-secondary)] hover:bg-[var(--tema-surface-elevado)]'
               }`}
             >
               <Icon className="h-5 w-5 sm:h-4 sm:w-4" strokeWidth={ativo ? 2.5 : 1.8} />
@@ -39,10 +39,10 @@ export function BottomNav() {
           type="button"
           onClick={() => openMenu?.()}
           aria-label={t('Abrir menu')}
-          className="flex min-w-[4rem] flex-col items-center gap-1 rounded-full px-2 py-2 text-[11px] text-stone-400 transition hover:text-stone-100 sm:min-w-0 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-sm"
+          className="flex min-w-[4rem] flex-col items-center gap-0.5 rounded-xl px-3 py-1 text-[11px] text-[var(--tema-text-secondary)] transition hover:bg-[var(--tema-surface-elevado)] sm:min-w-0 sm:flex-row sm:gap-2 sm:px-6 sm:py-2.5 sm:text-sm"
         >
           <Menu className="h-5 w-5 sm:h-4 sm:w-4" />
-          <span className="font-medium">{t('Preferências')}</span>
+          <span className="font-medium">{t('Menu')}</span>
         </button>
       </div>
     </nav>

@@ -117,7 +117,7 @@ export function CartaoForm() {
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => navigate('/cartoes')}
-            className="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 hover:bg-gray-700 text-sm"
+            className="rounded-lg border border-[var(--tema-border)] bg-[var(--tema-surface)] px-3 py-2 text-sm text-[var(--tema-text-primary)] transition hover:bg-[var(--tema-surface-elevado)]"
           >
             {t('Voltar')}
           </button>
@@ -133,7 +133,7 @@ export function CartaoForm() {
         )}
 
         <div className="-mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          <div className="relative mx-auto flex h-[17.65rem] w-[28rem] shrink-0 items-end overflow-hidden rounded-[1.7rem] p-5 text-white shadow-[0_16px_38px_rgba(70,24,150,.24)] sm:p-7" style={{ background: cardBackgroundForBank(banco) }}>
+          <div data-theme-contrast="inverse" className="relative mx-auto flex h-[17.65rem] w-[28rem] shrink-0 items-end overflow-hidden rounded-[1.7rem] p-5 text-white shadow-[0_16px_38px_rgba(70,24,150,.24)] sm:p-7" style={{ background: cardBackgroundForBank(banco) }}>
             <div className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full border border-white/10" />
             <div className="pointer-events-none absolute -right-2 -top-12 h-40 w-40 rounded-full border border-white/[0.08]" />
             <div className="absolute right-5 top-5 grid h-12 w-[4.75rem] place-items-center rounded-lg bg-white shadow-lg sm:right-7 sm:top-7">
@@ -154,10 +154,10 @@ export function CartaoForm() {
             e.preventDefault();
             salvar();
           }}
-          className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-x-6 md:gap-y-5 md:rounded-3xl md:border md:border-white/[0.07] md:bg-[var(--tema-surface)] md:p-8"
+          className="grid grid-cols-1 gap-4 rounded-3xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 md:grid-cols-2 md:gap-x-6 md:gap-y-5 md:p-8"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="mb-1 block text-sm font-medium text-[var(--tema-text-secondary)]">
               {t('Banco')}
             </label>
             <select
@@ -171,7 +171,7 @@ export function CartaoForm() {
                   setBanco(selecionado);
                 }
               }}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm focus:border-[var(--tema-accent)] focus:outline-none"
+              className="w-full rounded-lg border border-[var(--tema-border)] bg-[var(--tema-input)] px-3 py-2 text-sm text-[var(--tema-text-primary)] outline-none transition focus:border-[var(--tema-accent)] focus:ring-2 focus:ring-[var(--tema-accent)]/20"
             >
               <option value="">{t('Selecione o banco')}</option>
               {BANCOS.map((opcao) => (
@@ -185,20 +185,20 @@ export function CartaoForm() {
                 value={banco}
                 onChange={(e) => setBanco(e.target.value)}
                 placeholder={t('Digite o nome do banco')}
-                className="mt-3 w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm focus:border-[var(--tema-accent)] focus:outline-none"
+                className="mt-3 w-full rounded-lg border border-[var(--tema-border)] bg-[var(--tema-input)] px-3 py-2 text-sm text-[var(--tema-text-primary)] outline-none transition placeholder:text-[var(--tema-text-secondary)] focus:border-[var(--tema-accent)] focus:ring-2 focus:ring-[var(--tema-accent)]/20"
                 autoFocus
               />
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="mb-1 block text-sm font-medium text-[var(--tema-text-secondary)]">
               {t('Bandeira')}
             </label>
             <select
               value={bandeira}
               onChange={(e) => setBandeira(e.target.value as BandeiraCartao)}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+              className="w-full rounded-lg border border-[var(--tema-border)] bg-[var(--tema-input)] px-3 py-2 text-sm text-[var(--tema-text-primary)] outline-none transition focus:border-[var(--tema-accent)] focus:ring-2 focus:ring-[var(--tema-accent)]/20"
             >
               {Object.values(BandeiraCartao).map((b) => (
                 <option key={b} value={b}>
@@ -209,7 +209,7 @@ export function CartaoForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="mb-1 block text-sm font-medium text-[var(--tema-text-secondary)]">
               {t('Nome do cartão')}
             </label>
             <input
@@ -217,13 +217,13 @@ export function CartaoForm() {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder={t('Ex: Cartão principal')}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+              className="w-full rounded-lg border border-[var(--tema-border)] bg-[var(--tema-input)] px-3 py-2 text-sm text-[var(--tema-text-primary)] outline-none transition placeholder:text-[var(--tema-text-secondary)] focus:border-[var(--tema-accent)] focus:ring-2 focus:ring-[var(--tema-accent)]/20"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="mb-1 block text-sm font-medium text-[var(--tema-text-secondary)]">
                 {t('Dia fechamento')}
               </label>
               <input
@@ -232,11 +232,11 @@ export function CartaoForm() {
                 max={31}
                 value={diaFechamento}
                 onChange={(e) => setDiaFechamento(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+                className="w-full rounded-lg border border-[var(--tema-border)] bg-[var(--tema-input)] px-3 py-2 text-sm text-[var(--tema-text-primary)] outline-none transition focus:border-[var(--tema-accent)] focus:ring-2 focus:ring-[var(--tema-accent)]/20"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="mb-1 block text-sm font-medium text-[var(--tema-text-secondary)]">
                 {t('Dia pagamento')}
               </label>
               <input
@@ -245,17 +245,17 @@ export function CartaoForm() {
                 max={31}
                 value={diaPagamento}
                 onChange={(e) => setDiaPagamento(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+                className="w-full rounded-lg border border-[var(--tema-border)] bg-[var(--tema-input)] px-3 py-2 text-sm text-[var(--tema-text-primary)] outline-none transition focus:border-[var(--tema-accent)] focus:ring-2 focus:ring-[var(--tema-accent)]/20"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="mb-1 block text-sm font-medium text-[var(--tema-text-secondary)]">
               {t('Limite (R$)')}
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--tema-text-secondary)]">
                 {idioma === 'pt-BR' ? 'R$' : '$'}
               </span>
               <input
@@ -267,7 +267,7 @@ export function CartaoForm() {
                   setLimiteCentavos(parseInt(digits || '0', 10));
                 }}
                 placeholder={idioma === 'pt-BR' ? '0,00' : '0.00'}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pl-9 pr-3 text-sm focus:border-[var(--tema-accent)] focus:outline-none"
+                className="w-full rounded-lg border border-[var(--tema-border)] bg-[var(--tema-input)] py-2 pl-9 pr-3 text-sm text-[var(--tema-text-primary)] outline-none transition placeholder:text-[var(--tema-text-secondary)] focus:border-[var(--tema-accent)] focus:ring-2 focus:ring-[var(--tema-accent)]/20"
               />
             </div>
           </div>
@@ -276,14 +276,14 @@ export function CartaoForm() {
             <button
               type="button"
               onClick={() => navigate('/cartoes')}
-              className="flex-1 py-2.5 rounded-lg bg-gray-800 border border-gray-700 hover:bg-gray-700 text-sm font-medium"
+              className="flex-1 rounded-lg border border-[var(--tema-border)] bg-[var(--tema-surface-elevado)] py-2.5 text-sm font-medium text-[var(--tema-text-primary)] transition hover:brightness-95"
             >
               {t('Cancelar')}
             </button>
             <button
               type="submit"
               disabled={enviando}
-              className="flex-1 py-2.5 rounded-lg bg-[var(--tema-accent)] hover:bg-[var(--tema-accent)]/90 disabled:opacity-50 text-sm font-medium"
+              className="flex-1 rounded-lg bg-[var(--tema-accent)] py-2.5 text-sm font-medium text-white transition hover:brightness-110 disabled:opacity-50"
             >
               {enviando ? t('Salvando…') : modoEdicao ? t('Salvar alterações') : t('Adicionar')}
             </button>

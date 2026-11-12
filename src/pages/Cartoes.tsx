@@ -133,6 +133,7 @@ export function Cartoes() {
                     <button
                       type="button"
                       onClick={() => navigate(`/cartao/${cartao.id}`)}
+                      data-theme-contrast="inverse"
                       className="relative flex h-[17.65rem] w-[28rem] shrink-0 flex-col justify-between overflow-hidden p-6 text-left text-white sm:p-8"
                       style={{ background: gradiente }}
                     >

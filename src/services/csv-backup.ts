@@ -50,8 +50,10 @@ export function exportMangoCsv(
 
   if (profile) {
     const colorArgb = profile.corFundo <= 0xffffff ? 0xff000000 + profile.corFundo : profile.corFundo;
-    const avatar = /^[\p{Emoji}\s]+$/u.test(profile.avatar) ? profile.avatar : '';
-    lines.push(`# PERFIL;nome=${quoteCsv(profile.username)};avatar=${quoteCsv(avatar)};cor=${colorArgb};tema=${profile.temaClaro ? 'claro' : 'escuro'}`);
+    const avatarEhEmoji = /^[\p{Emoji}\s]+$/u.test(profile.avatar);
+    const avatar = avatarEhEmoji ? profile.avatar : '';
+    const avatarB64 = avatarEhEmoji ? '' : profile.avatar;
+    lines.push(`# PERFIL;nome=${quoteCsv(profile.username)};avatar=${quoteCsv(avatar)};avatar_b64=${quoteCsv(avatarB64)};cor=${colorArgb};tema=${profile.temaClaro ? 'claro' : 'escuro'}`);
   }
 
   const orderedCards = [...cards].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
@@ -157,19 +159,18 @@ function parseCard(record: string[]): CartaoCreditoInput | null {
 }
 
 function parseProfile(record: string[]): UserProfile | null {
-  const fields: Record<string, string> = {};
-  for (const field of record.slice(1)) {
-    const separator = field.indexOf('=');
-    if (separator <= 0) continue;
-    fields[field.slice(0, separator).trim().toLowerCase()] = field.slice(separator + 1).trim();
-  }
+  const fields = parseKeyValueFields(record.slice(1));
 
   const username = fields.nome ?? '';
-  const avatar = fields.avatar ?? '';
+  const avatar = fields.avatar_b64 || fields.avatar || '';
   const colorArgb = Number(fields.cor);
   if (
     username.length > 40
-    || avatar.length > 64
+    || (fields.avatar_b64 !== undefined && (
+      fields.avatar_b64.length > MAX_FILE_BYTES
+      || (fields.avatar_b64 !== '' && !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(fields.avatar_b64))
+    ))
+    || (fields.avatar_b64 === undefined && avatar.length > 64)
     || !Number.isSafeInteger(colorArgb)
     || colorArgb < 0
     || colorArgb > 0xffffffff

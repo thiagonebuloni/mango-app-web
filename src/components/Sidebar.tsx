@@ -92,7 +92,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     setImportingCsv(true);
     setCsvFeedback(null);
     try {
-      await importarBackupCsv(
+      const resultadoImportacao = await importarBackupCsv(
         pendingImport.data.expenses,
         pendingImport.data.cards,
         pendingImport.data.profile,
@@ -102,7 +102,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         ? ` ${t('A sincronização com a nuvem está pendente; os dados foram salvos neste dispositivo.')}`
         : '';
       setCsvFeedback({
-        message: `${t('Lançamentos adicionados:')} ${pendingImport.data.expenses.length}. ${t('Cartões processados:')} ${pendingImport.data.cards.length}. ${pendingImport.data.profile ? t('O perfil também foi atualizado.') : ''} ${pendingImport.data.skipped > 0 ? `${pendingImport.data.skipped} ${t('linhas ignoradas por estarem inválidas.')}` : ''}${mensagemSync}`,
+        message: `${t('Lançamentos adicionados:')} ${resultadoImportacao.added}. ${resultadoImportacao.duplicates > 0 ? `${resultadoImportacao.duplicates} ${t('lançamentos duplicados ignorados.')}` : ''} ${t('Cartões processados:')} ${pendingImport.data.cards.length}. ${pendingImport.data.profile ? t('O perfil também foi atualizado.') : ''} ${pendingImport.data.skipped > 0 ? `${pendingImport.data.skipped} ${t('linhas ignoradas por estarem inválidas.')}` : ''}${mensagemSync}`,
         error: false,
       });
       setPendingImport(null);

@@ -52,6 +52,7 @@ const traducoesEn: Record<string, string> = {
   'Arquivo muito grande para importar. O limite é 16 MB.': 'File is too large to import. The limit is 16 MB.',
   'O arquivo não contém lançamentos ou cartões para importar.': 'The file contains no entries or cards to import.',
   'Lançamentos adicionados:': 'Entries added:',
+  'lançamentos duplicados ignorados.': 'duplicate entries skipped.',
   'Cartões processados:': 'Cards processed:',
   'Lançamentos encontrados:': 'Entries found:',
   'Cartões encontrados:': 'Cards found:',

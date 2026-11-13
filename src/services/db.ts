@@ -183,7 +183,7 @@ export async function appendCsvBackupData(
   expenses: CsvExpenseInput[],
   cards: CartaoCreditoInput[],
   profile: UserProfile | null,
-): Promise<void> {
+): Promise<{ added: number; duplicates: number }> {
   const db = await getDB();
   const tx = db.transaction(['expenses', 'cartoes', 'perfil'], 'readwrite');
   const cardStore = tx.objectStore('cartoes');
@@ -208,20 +208,45 @@ export async function appendCsvBackupData(
   }
 
   const expenseStore = tx.objectStore('expenses');
+  const existingExpenses = await expenseStore.getAll();
+  const chaveDespesa = (expense: Pick<Expense, 'data' | 'valorCentavos' | 'categoria' | 'formaPagamento' | 'estabelecimento' | 'observacao' | 'cartaoId'>) => JSON.stringify([
+    expense.data,
+    expense.valorCentavos,
+    expense.categoria,
+    expense.formaPagamento,
+    expense.estabelecimento.trim().replace(/\s+/g, ' ').toLocaleLowerCase(),
+    expense.observacao?.trim().replace(/\s+/g, ' ').toLocaleLowerCase() ?? '',
+    expense.cartaoId ?? null,
+  ]);
+  const chavesDespesas = new Set(existingExpenses.map(chaveDespesa));
   const agora = new Date().toISOString();
+  let added = 0;
+  let duplicates = 0;
   for (const { cartaoNome, ...expense } of expenses) {
     const cartaoId = cartaoNome ? cardIdsByName.get(cartaoNome) : undefined;
-    await expenseStore.add({
+    const despesaComCartao = {
       ...expense,
       cartaoId: cartaoId ?? expense.cartaoId,
+    };
+    const chave = chaveDespesa(despesaComCartao);
+    if (chavesDespesas.has(chave)) {
+      duplicates += 1;
+      continue;
+    }
+
+    await expenseStore.add({
+      ...despesaComCartao,
       criadoEm: agora,
       atualizadoEm: agora,
     });
+    chavesDespesas.add(chave);
+    added += 1;
   }
   if (profile) {
     await tx.objectStore('perfil').put({ ...profile, id: 'perfil' } as unknown as UserProfile);
   }
   await tx.done;
+  return { added, duplicates };
 }
 
 export async function updateExpense(expense: Expense): Promise<void> {

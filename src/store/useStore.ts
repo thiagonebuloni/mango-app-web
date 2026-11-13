@@ -74,7 +74,7 @@ interface MangoState {
   // Ações — Despesas
   carregarDespesas: () => Promise<void>;
   adicionarDespesa: (input: ExpenseInput) => Promise<number>;
-  importarBackupCsv: (expenses: CsvExpenseInput[], cards: CartaoCreditoInput[], profile: UserProfile | null) => Promise<void>;
+  importarBackupCsv: (expenses: CsvExpenseInput[], cards: CartaoCreditoInput[], profile: UserProfile | null) => Promise<{ added: number; duplicates: number }>;
   editarDespesa: (expense: Expense) => Promise<void>;
   excluirDespesa: (id: number) => Promise<void>;
   despesasDoMes: (mes: string) => Expense[];
@@ -219,10 +219,11 @@ export const useMangoStore = create<MangoState>((set, get) => ({
   },
 
   importarBackupCsv: async (expenses, cards, profile) => {
-    await appendCsvBackupData(expenses, cards, profile);
+    const resultado = await appendCsvBackupData(expenses, cards, profile);
     await Promise.all([get().carregarDespesas(), get().carregarCartoes()]);
     if (profile) set({ perfil: profile, idioma: profile.idioma });
     await get().sincronizarAgora();
+    return resultado;
   },
 
   editarDespesa: async (expense) => {

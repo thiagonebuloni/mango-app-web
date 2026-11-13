@@ -179,13 +179,13 @@ export function Home() {
         </div>
       </section>
       <aside className="grid grid-cols-2 content-start gap-3 xl:grid-cols-1 xl:gap-4">
-        <div className="flex items-center gap-3 rounded-2xl border border-rose-400/10 bg-rose-500/[0.055] p-4 text-sm text-rose-200/80 xl:p-5">
-          <TrendingDown className="h-5 w-5 shrink-0 text-rose-300" />
-          <span>{t('Despesas do mês')} <strong className="mt-1 block text-lg text-rose-100">{formatMoney(totalDespesas, idioma)}</strong></span>
+        <div className="flex items-center gap-3 rounded-2xl border border-rose-400/10 bg-rose-500/[0.055] p-4 text-sm text-rose-800 dark:text-rose-200 xl:p-5">
+          <TrendingDown className="h-5 w-5 shrink-0 text-rose-800 dark:text-rose-300" />
+          <span>{t('Despesas do mês')} <strong className="mt-1 block text-lg text-rose-900 dark:text-rose-100">{formatMoney(totalDespesas, idioma)}</strong></span>
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-emerald-400/10 bg-emerald-500/[0.055] p-4 text-sm text-emerald-200/80 xl:p-5">
-          <TrendingUp className="h-5 w-5 shrink-0 text-emerald-300" />
-          <span>{t('Receitas do mês')} <strong className="mt-1 block text-lg text-emerald-100">{formatMoney(receitasMes, idioma)}</strong></span>
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-400/10 bg-emerald-500/[0.055] p-4 text-sm text-emerald-900 dark:text-emerald-200 xl:p-5">
+          <TrendingUp className="h-5 w-5 shrink-0 text-emerald-800 dark:text-emerald-300" />
+          <span>{t('Receitas do mês')} <strong className="mt-1 block text-lg text-emerald-950 dark:text-emerald-100">{formatMoney(receitasMes, idioma)}</strong></span>
         </div>
       </aside>
       </div>

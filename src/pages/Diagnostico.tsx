@@ -44,37 +44,37 @@ export function Diagnostico() {
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => navigate('/')}
-            className="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 hover:bg-gray-700 text-sm"
+            className="px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] hover:bg-[var(--tema-surface-elevado)] text-sm text-[var(--tema-text-primary)]"
           >
             {t('Voltar')}
           </button>
           <h1 className="text-2xl font-bold">{t('Diagnóstico')}</h1>
         </div>
 
-        <section className="rounded-xl border border-gray-800 bg-gray-900/40 p-5 mb-6">
-          <h2 className="text-lg font-semibold mb-4">{t('Estado do app')}</h2>
+        <section className="rounded-xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5 mb-6">
+          <h2 className="text-lg font-semibold text-[var(--tema-text-primary)] mb-4">{t('Estado do app')}</h2>
           <div className="space-y-2">
             {info.map((item) => (
               <div
                 key={item.label}
-                className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0"
+                className="flex items-center justify-between gap-4 py-2 border-b border-[var(--tema-border)] last:border-0"
               >
-                <span className="text-gray-400">{item.label}</span>
-                <span className="font-medium">{item.value}</span>
+                <span className="text-[var(--tema-text-secondary)]">{item.label}</span>
+                <span className="text-right font-medium text-[var(--tema-text-primary)]">{item.value}</span>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="rounded-xl border border-gray-800 bg-gray-900/40 p-5">
-          <h2 className="text-lg font-semibold mb-4">{t('Log de falhas')}</h2>
-          <div className="rounded-lg border border-gray-800 bg-black/20 p-4">
-            <p className="text-sm font-medium text-gray-200">
+        <section className="rounded-xl border border-[var(--tema-border)] bg-[var(--tema-surface)] p-5">
+          <h2 className="text-lg font-semibold text-[var(--tema-text-primary)] mb-4">{t('Log de falhas')}</h2>
+          <div className="rounded-lg border border-[var(--tema-border)] bg-[var(--tema-surface-elevado)] p-4">
+            <p className="text-sm font-medium text-[var(--tema-text-primary)]">
               {t(syncStatus === 'local' ? 'Somente neste dispositivo' : syncStatus === 'synced' ? 'Sincronizado com Supabase' : syncStatus === 'syncing' ? 'Sincronizando…' : syncStatus === 'pending' ? 'Sincronização pendente' : 'Erro de sincronização')}
             </p>
             {syncError
               ? <p role="alert" className="mt-2 break-words text-sm text-rose-300">{syncError}</p>
-              : <p className="mt-2 text-sm text-gray-500">{t('Nenhum erro de sincronização registrado.')}</p>}
+              : <p className="mt-2 text-sm text-[var(--tema-text-secondary)]">{t('Nenhum erro de sincronização registrado.')}</p>}
             {syncStatus === 'pending' && (
               <button
                 type="button"

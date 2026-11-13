@@ -206,7 +206,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
         <div className="flex items-center gap-2 mb-6">
           <button
             onClick={() => navigate('/')}
-            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300"
+            className="p-2 rounded-lg bg-[var(--tema-input)] hover:bg-[var(--tema-surface-elevado)] text-[var(--tema-text-primary)]"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -230,10 +230,10 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
             e.preventDefault();
             modoEdicao ? editar() : salvar();
           }}
-          className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-x-6 md:gap-y-5 md:rounded-3xl md:border md:border-white/[0.07] md:bg-[var(--tema-surface)] md:p-8"
+          className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-x-6 md:gap-y-5 md:rounded-3xl md:border md:border-[var(--tema-border)] md:bg-[var(--tema-surface)] md:p-8"
         >
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
               {t(isReceita ? 'Origem' : 'Estabelecimento')}
             </label>
             <input
@@ -241,7 +241,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
               value={estabelecimento}
               onChange={(e) => setEstabelecimento(e.target.value)}
               placeholder={t(isReceita ? 'Ex.: Salário ou freelance' : 'Ex.: Supermercado (1/3)')}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
             />
             {podeParcelar && (
               <p className="text-xs text-[var(--tema-accent)] mt-1">
@@ -252,11 +252,11 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
 
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
               {t('Valor (R$)')}
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--tema-text-secondary)] text-sm">
                 {idioma === 'pt-BR' ? 'R$' : '$'}
               </span>
               <input
@@ -268,19 +268,19 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
                   setValorCentavos(parseInt(digits || '0', 10));
                 }}
                 placeholder={idioma === 'pt-BR' ? '0,00' : '0.00'}
-                className="w-full pl-8 pr-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+                className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
               {t('Categoria')}
             </label>
             <select
               value={categoria}
               onChange={(e) => setCategoria(e.target.value as Category)}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
             >
               {categorias.map((c) => (
                 <option key={c} value={c}>
@@ -292,7 +292,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
 
           {!isReceita && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
                 {t('Forma de pagamento')}
               </label>
               <select
@@ -300,7 +300,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
                 onChange={(e) =>
                   setFormaPagamento(e.target.value as PaymentMethod)
                 }
-                className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
               >
                 {[PaymentMethod.dinheiro, PaymentMethod.debito, PaymentMethod.credito, PaymentMethod.pix, PaymentMethod.outros].map(
                   (m) => (
@@ -315,7 +315,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
 
           {!isReceita && formaPagamento === PaymentMethod.credito && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
                 {t('Cartão de crédito')}
               </label>
               <select
@@ -323,7 +323,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
                 onChange={(e) =>
                   setCartaoId(e.target.value ? Number(e.target.value) : undefined)
                 }
-                className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
               >
                 <option value="">{t('Nenhum (à vista)')}</option>
                 {cartoes
@@ -336,7 +336,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
                   ))}
               </select>
               {cartoesLoading ? (
-                <p className="mt-1 text-xs text-gray-500">{t('Carregando cartões…')}</p>
+                <p className="mt-1 text-xs text-[var(--tema-text-secondary)]">{t('Carregando cartões…')}</p>
               ) : cartoes.length === 0 ? (
                 <button
                   type="button"
@@ -350,19 +350,19 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
               {t('Data')}
             </label>
             <input
               type="date"
               value={data}
               onChange={(e) => setData(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
               {t('Observação')}
             </label>
             <textarea
@@ -370,13 +370,13 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
               onChange={(e) => setObservacao(e.target.value)}
               rows={2}
               placeholder={t('Notas adicionais…')}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
             />
           </div>
 
           {!isReceita && (
             <div className="space-y-2 md:col-span-2">
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
                 {t('Foto do cupom')}
               </label>
               <input
@@ -389,13 +389,13 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
                   void selecionarCupom(input.files?.[0]);
                   input.value = '';
                 }}
-                className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-800 file:px-3 file:py-2 file:text-gray-200 hover:file:bg-gray-700"
+                className="block w-full text-sm text-[var(--tema-text-primary)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--tema-input)] file:px-3 file:py-2 file:text-[var(--tema-text-primary)] hover:file:bg-[var(--tema-surface-elevado)]"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--tema-text-secondary)]">
                 {t('A imagem é processada localmente no navegador. Na primeira leitura, os componentes de OCR e o modelo em português são baixados.')}
               </p>
               {lendoCupom && (
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-[var(--tema-text-secondary)]">
                   {t('Reconhecendo texto…')} {Math.round(progressoOcr * 100)}%
                 </p>
               )}
@@ -403,16 +403,16 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
                 <p role="alert" className="text-xs text-red-400">{erroCupom}</p>
               )}
               {arquivoCupom && (
-                <div className="rounded-lg border border-gray-700 bg-gray-900/40 p-3">
+                <div className="rounded-lg border border-[var(--tema-border)] bg-[var(--tema-surface-elevado)] p-3">
                   <img
                     src={arquivoCupom.previewDataUrl}
                     alt={t('Prévia do cupom')}
                     className="max-h-64 max-w-full rounded object-contain"
                   />
-                  <p className="mt-2 text-xs text-gray-400">
+                  <p className="mt-2 text-xs text-[var(--tema-text-secondary)]">
                     {arquivoCupom.fileName} · {t('Confira os dados reconhecidos antes de salvar.')}
                   </p>
-                  <details className="mt-2 text-xs text-gray-400">
+                  <details className="mt-2 text-xs text-[var(--tema-text-secondary)]">
                     <summary className="cursor-pointer">{t('Texto reconhecido')}</summary>
                     <pre className="mt-2 whitespace-pre-wrap font-sans">
                       {arquivoCupom.text || t('Nenhum texto foi reconhecido.')}
@@ -427,7 +427,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="flex-1 py-2.5 rounded-lg bg-gray-800 border border-gray-700 hover:bg-gray-700 text-sm font-medium"
+              className="flex-1 py-2.5 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] hover:bg-[var(--tema-surface-elevado)] text-sm font-medium text-[var(--tema-text-primary)]"
             >
               {t('Cancelar')}
             </button>

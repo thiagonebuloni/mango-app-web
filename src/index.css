@@ -64,6 +64,105 @@
     border-color: #be4562 !important;
   }
 
+  .light .register-success-alert {
+    color: #14532d !important;
+    background-color: #dcfce7 !important;
+    border-color: #16a34a !important;
+  }
+
+  .dark .register-success-alert {
+    color: #dcfce7 !important;
+    background-color: #14532d !important;
+    border-color: #4ade80 !important;
+  }
+
+  .light .delete-account-trigger {
+    color: #9f1239 !important;
+    background-color: #fff1f2 !important;
+    border-color: #e11d48 !important;
+  }
+
+  .light .delete-account-trigger:hover {
+    background-color: #ffe4e6 !important;
+  }
+
+  .dark .delete-account-trigger {
+    color: #fecdd3 !important;
+    border-color: #be4562 !important;
+  }
+
+  .dark .delete-account-trigger:hover {
+    background-color: #701a2d !important;
+  }
+
+  .light .delete-account-modal.delete-account-modal {
+    color: #202927 !important;
+    background-color: #fff7f7 !important;
+    border-color: #be123c !important;
+  }
+
+  .light .delete-account-modal .delete-account-title {
+    color: #9f1239 !important;
+  }
+
+  .light .delete-account-modal .delete-account-copy {
+    color: #374151 !important;
+  }
+
+  .light .delete-account-modal .delete-account-input {
+    color: #202927 !important;
+    background-color: #ffffff !important;
+    border-color: #9ca3af !important;
+  }
+
+  .light .delete-account-modal .delete-account-cancel {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+    border-color: #9ca3af !important;
+  }
+
+  .light .delete-account-modal .delete-account-submit {
+    background-color: #be123c !important;
+  }
+
+  .light .delete-account-modal .delete-account-submit:hover:not(:disabled) {
+    background-color: #9f1239 !important;
+  }
+
+  .light .delete-account-modal .delete-account-submit:disabled {
+    color: #881337 !important;
+    background-color: #fecdd3 !important;
+    opacity: 1;
+  }
+
+  .dark .delete-account-modal {
+    border-color: #be4562 !important;
+  }
+
+  .dark .delete-account-modal .delete-account-submit {
+    background-color: #be123c !important;
+  }
+
+  .dark .delete-account-modal .delete-account-submit:hover:not(:disabled) {
+    background-color: #9f1239 !important;
+  }
+
+  .dark .delete-account-modal .delete-account-input {
+    color: #f4f4f5 !important;
+    background-color: #181a1a !important;
+    border-color: #6b7280 !important;
+  }
+
+  .dark .delete-account-modal .delete-account-cancel {
+    color: #e5e7eb !important;
+    border-color: #6b7280 !important;
+  }
+
+  .dark .delete-account-modal .delete-account-submit:disabled {
+    background-color: #701a2d !important;
+    opacity: 1;
+  }
+
   .light [class*="bg-[#"],
   .light [class*="bg-[color-mix(in_srgb,var(--tema-accent)"] {
     background-color: var(--tema-surface) !important;

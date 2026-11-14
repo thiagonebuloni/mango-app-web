@@ -53,7 +53,7 @@ export function Register() {
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">{t('Criar sua conta')}</h1>
         <p className="mt-2 text-sm text-[var(--tema-text-secondary)]">{t('Cadastre-se com seu e-mail e uma senha segura.')}</p>
         {success ? (
-          <div className="mt-7 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5 text-sm leading-relaxed text-emerald-100" role="status">
+          <div className="register-success-alert mt-7 rounded-2xl border p-5 text-sm font-medium leading-relaxed" role="status">
             {t('Conta criada. Verifique seu e-mail para confirmar o cadastro antes de entrar.')}
           </div>
         ) : (

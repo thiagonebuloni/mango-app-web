@@ -321,7 +321,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   setDeleteError(null);
                   setConfirmDeleteOpen(true);
                 }}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-400/20 px-3 py-2.5 text-sm text-rose-300 transition hover:bg-rose-500/10"
+                className="delete-account-trigger mt-2 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm transition"
               >
                 <Trash2 className="h-4 w-4" /> {t('Apagar conta')}
               </button>
@@ -335,15 +335,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="delete-account-title"
-            className="w-full max-w-lg rounded-3xl border border-rose-400/20 bg-[#111312] p-6 text-stone-100 shadow-2xl sm:p-8"
+            className="delete-account-modal w-full max-w-lg rounded-3xl border border-rose-400/40 bg-[#111312] p-6 text-stone-100 shadow-2xl sm:p-8"
           >
-            <h2 id="delete-account-title" className="text-xl font-semibold text-rose-200">{t('Apagar conta')}</h2>
-            <p className="mt-3 text-sm leading-relaxed text-stone-300">
+            <h2 id="delete-account-title" className="delete-account-title text-xl font-semibold text-rose-200">{t('Apagar conta')}</h2>
+            <p className="delete-account-copy mt-3 text-sm leading-relaxed text-stone-300">
               {t(supabaseConfigured
                 ? 'Sua sessão e identidade serão removidas agora. Os dados remotos ficarão guardados por 30 dias e poderão ser restaurados se você criar uma conta novamente com este e-mail.'
                 : 'Todos os dados salvos neste navegador serão apagados permanentemente.')}
             </p>
-            <label htmlFor="delete-account-confirm" className="mt-5 block text-sm text-stone-300">
+            <label htmlFor="delete-account-confirm" className="delete-account-copy mt-5 block text-sm text-stone-300">
               {t('Digite APAGAR para confirmar')}
             </label>
             <input
@@ -352,16 +352,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               autoComplete="off"
               value={deletePhrase}
               onChange={(event) => setDeletePhrase(event.target.value)}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm outline-none focus:border-rose-400/50"
+              className="delete-account-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:border-rose-500"
               autoFocus
             />
-            {deleteError && <p role="alert" className="mt-3 break-words text-sm text-rose-300">{deleteError}</p>}
+            {deleteError && <p role="alert" className="mt-3 break-words text-sm font-medium text-rose-700 dark:text-rose-300">{deleteError}</p>}
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmDeleteOpen(false)}
                 disabled={deleting}
-                className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-stone-300 hover:bg-white/5"
+                className="delete-account-cancel rounded-xl border px-4 py-2.5 text-sm transition"
               >
                 {t('Cancelar')}
               </button>
@@ -369,7 +369,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 type="button"
                 onClick={() => void confirmarApagamento()}
                 disabled={deleting || deletePhrase.trim().toLocaleUpperCase() !== t('APAGAR')}
-                className="rounded-xl bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
+                className="delete-account-submit rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition disabled:cursor-not-allowed"
               >
                 {deleting ? t('Apagando…') : t('Apagar permanentemente')}
               </button>

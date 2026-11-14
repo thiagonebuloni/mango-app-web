@@ -52,6 +52,18 @@
     --color-foreground: #f4f4f5;
   }
 
+  .light .login-error-alert {
+    color: #881337 !important;
+    background-color: #ffe4e6 !important;
+    border-color: #be123c !important;
+  }
+
+  .dark .login-error-alert {
+    color: #fecdd3 !important;
+    background-color: #701a2d !important;
+    border-color: #be4562 !important;
+  }
+
   .light [class*="bg-[#"],
   .light [class*="bg-[color-mix(in_srgb,var(--tema-accent)"] {
     background-color: var(--tema-surface) !important;

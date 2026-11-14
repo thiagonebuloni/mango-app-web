@@ -113,7 +113,7 @@ export function Login() {
           </button>
         </form>
         {error && (
-          <p role="alert" className="mt-5 break-words rounded-xl border border-rose-400/20 bg-rose-500/10 p-3 text-sm text-rose-200">
+          <p role="alert" className="login-error-alert mt-5 break-words rounded-xl border p-3 text-sm font-semibold">
             {error}
           </p>
         )}

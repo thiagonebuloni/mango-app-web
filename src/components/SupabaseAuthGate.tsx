@@ -97,7 +97,7 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
       && 'invalidAuthLink' in location.state
       && location.state.invalidAuthLink === true);
 
-  if (hasInvalidAuthLink && location.pathname !== '/login') {
+  if (hasInvalidAuthLink && location.pathname !== '/login' && location.pathname !== '/auth/callback') {
     return <Navigate to="/login" replace state={{ invalidAuthLink: true }} />;
   }
 
@@ -108,6 +108,8 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
       </main>
     );
   }
+
+  if (location.pathname === '/auth/callback') return children;
 
   if (location.pathname === '/login' || location.pathname === '/register') {
     return session && !hasInvalidAuthLink ? <Navigate to="/" replace /> : children;

@@ -20,6 +20,7 @@ import { useMangoStore } from './store/useStore';
 import { SupabaseAuthGate } from './components/SupabaseAuthGate';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { AuthCallback } from './pages/AuthCallback';
 
 function App() {
   const { perfil, idioma } = useMangoStore();
@@ -46,6 +47,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/splash" element={<Splash />} />
             <Route path="/first-run" element={<FirstRun />} />
             <Route path="/landing" element={<Landing />} />

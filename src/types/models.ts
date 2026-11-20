@@ -89,6 +89,7 @@ export const PaymentMethod = {
   debito: 'debito',
   credito: 'credito',
   pix: 'pix',
+  transferencia: 'transferencia',
   outros: 'outros',
 } as const;
 
@@ -100,6 +101,7 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   [PaymentMethod.debito]: 'Débito',
   [PaymentMethod.credito]: 'Crédito',
   [PaymentMethod.pix]: 'PIX',
+  [PaymentMethod.transferencia]: 'Transferência',
   [PaymentMethod.outros]: 'Outros',
 };
 

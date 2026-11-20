@@ -10,7 +10,7 @@ import {
   CATEGORY_LABELS,
 } from '../types/models';
 import { expandirParcelas } from '../utils/format';
-import { ChevronLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronLeft } from 'lucide-react';
 import { useI18n } from '../utils/i18n';
 import {
   ReceiptOcrError,
@@ -203,7 +203,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
   return (
     <div className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:py-12">
       <div className="mx-auto max-w-5xl">
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => navigate('/')}
             className="p-2 rounded-lg bg-[var(--tema-input)] hover:bg-[var(--tema-surface-elevado)] text-[var(--tema-text-primary)]"
@@ -215,6 +215,22 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
               ? t(isReceita ? 'Editar receita' : 'Editar despesa')
               : t(isReceita ? 'Nova receita' : 'Nova despesa')}
           </h1>
+          {!modoEdicao && (
+            <button
+              onClick={() =>
+                navigate(isReceita ? '/despesa/nova' : '/receita/nova')
+              }
+              title={t(isReceita ? 'Nova despesa' : 'Nova receita')}
+              className="flex items-center gap-1.5 p-2 rounded-lg bg-[var(--tema-input)] hover:bg-[var(--tema-surface-elevado)] text-sm font-medium text-[var(--tema-text-primary)]"
+            >
+              {isReceita ? (
+                <ArrowLeft className="w-4 h-4" />
+              ) : (
+                <ArrowRight className="w-4 h-4" />
+              )}
+              {t(isReceita ? 'Nova despesa' : 'Nova receita')}
+            </button>
+          )}
         </div>
 
         {erro && (
@@ -290,28 +306,39 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
             </select>
           </div>
 
-          {!isReceita && (
-            <div>
-              <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
-                {t('Forma de pagamento')}
-              </label>
-              <select
-                value={formaPagamento}
-                onChange={(e) =>
-                  setFormaPagamento(e.target.value as PaymentMethod)
-                }
-                className="w-full px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
-              >
-                {[PaymentMethod.dinheiro, PaymentMethod.debito, PaymentMethod.credito, PaymentMethod.pix, PaymentMethod.outros].map(
-                  (m) => (
-                    <option key={m} value={m}>
-                      {t(PAYMENT_METHOD_LABELS[m])}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-[var(--tema-text-primary)] mb-1">
+              {t('Forma de pagamento')}
+            </label>
+            <select
+              value={formaPagamento}
+              onChange={(e) =>
+                setFormaPagamento(e.target.value as PaymentMethod)
+              }
+              className="w-full px-3 py-2 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] text-[var(--tema-text-primary)] focus:outline-none focus:border-[var(--tema-accent)] text-sm"
+            >
+              {(
+                isReceita
+                  ? [
+                      PaymentMethod.dinheiro,
+                      PaymentMethod.pix,
+                      PaymentMethod.transferencia,
+                      PaymentMethod.outros,
+                    ]
+                  : [
+                      PaymentMethod.dinheiro,
+                      PaymentMethod.debito,
+                      PaymentMethod.credito,
+                      PaymentMethod.pix,
+                      PaymentMethod.outros,
+                    ]
+              ).map((m) => (
+                <option key={m} value={m}>
+                  {t(PAYMENT_METHOD_LABELS[m])}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {!isReceita && formaPagamento === PaymentMethod.credito && (
             <div>

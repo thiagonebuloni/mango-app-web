@@ -7,6 +7,7 @@ import {
 } from '../types/models';
 import { useI18n } from '../utils/i18n';
 import { CardNetworkLogo } from '../components/CardNetworkLogo';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { cardBackgroundForBank } from '../utils/card-appearance';
 
 const BANCOS = [
@@ -61,6 +62,24 @@ export function CartaoForm() {
   );
   const [enviando, setEnviando] = useState<boolean>(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [confirmacaoDescarteOpen, setConfirmacaoDescarteOpen] = useState(false);
+
+  const valoresIniciaisCartao = {
+    banco: cartaoExistente?.banco ?? '',
+    bandeira: cartaoExistente?.bandeira ?? BandeiraCartao.visa,
+    nome: cartaoExistente?.nome ?? '',
+    diaFechamento: cartaoExistente?.diaFechamento ?? 1,
+    diaPagamento: cartaoExistente?.diaPagamento ?? 10,
+    limiteCentavos: cartaoExistente?.limiteCentavos ?? 0,
+  };
+
+  const formularioFoiAlteradoCartao =
+    banco !== valoresIniciaisCartao.banco ||
+    bandeira !== valoresIniciaisCartao.bandeira ||
+    nome !== valoresIniciaisCartao.nome ||
+    diaFechamento !== valoresIniciaisCartao.diaFechamento ||
+    diaPagamento !== valoresIniciaisCartao.diaPagamento ||
+    limiteCentavos !== valoresIniciaisCartao.limiteCentavos;
 
   const limiteFormatado = new Intl.NumberFormat(idioma, {
     minimumFractionDigits: 2,
@@ -109,6 +128,19 @@ export function CartaoForm() {
       setEnviando(false);
       setErro(t('Erro ao salvar cartão'));
     }
+  };
+
+  const handleCancelar = () => {
+    if (formularioFoiAlteradoCartao) {
+      setConfirmacaoDescarteOpen(true);
+    } else {
+      navigate('/cartoes');
+    }
+  };
+
+  const confirmarDescarte = () => {
+    setConfirmacaoDescarteOpen(false);
+    navigate('/cartoes');
   };
 
   return (
@@ -275,7 +307,7 @@ export function CartaoForm() {
           <div className="flex gap-3 pt-2 md:col-span-2 md:justify-end">
             <button
               type="button"
-              onClick={() => navigate('/cartoes')}
+              onClick={handleCancelar}
               className="flex-1 rounded-lg border border-[var(--tema-border)] bg-[var(--tema-surface-elevado)] py-2.5 text-sm font-medium text-[var(--tema-text-primary)] transition hover:brightness-95"
             >
               {t('Cancelar')}
@@ -289,6 +321,14 @@ export function CartaoForm() {
             </button>
           </div>
         </form>
+
+        {confirmacaoDescarteOpen && (
+          <ConfirmDialog
+            isOpen={confirmacaoDescarteOpen}
+            onConfirm={confirmarDescarte}
+            onCancel={() => setConfirmacaoDescarteOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

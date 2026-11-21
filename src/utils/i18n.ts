@@ -255,6 +255,9 @@ const traducoesEn: Record<string, string> = {
   'elo': 'Elo',
   'hipercard': 'Hipercard',
   'outros': 'Other',
+  'Descartar alterações não salvas?': 'Discard unsaved changes?',
+  'As informações preenchidas no formulário serão perdidas. Deseja realmente cancelar?': 'The information entered in the form will be lost. Do you really want to cancel?',
+  'OK': 'OK',
 };
 
 export function traduzir(texto: string, idioma: Idioma): string {

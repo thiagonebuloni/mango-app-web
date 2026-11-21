@@ -11,6 +11,7 @@ import {
 } from '../types/models';
 import { expandirParcelas } from '../utils/format';
 import { ArrowLeft, ArrowRight, ChevronLeft } from 'lucide-react';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useI18n } from '../utils/i18n';
 import {
   ReceiptOcrError,
@@ -75,6 +76,27 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
   const [erroCupom, setErroCupom] = useState<string | null>(null);
   const [lendoCupom, setLendoCupom] = useState(false);
   const [progressoOcr, setProgressoOcr] = useState(0);
+  const [confirmacaoDescarteOpen, setConfirmacaoDescarteOpen] = useState(false);
+
+  const valoresIniciais = {
+    estabelecimento: despesaExistente?.estabelecimento ?? '',
+    valorCentavos: despesaExistente?.valorCentavos ?? 0,
+    categoria: despesaExistente?.categoria ?? (isReceita ? CATEGORY_RECEITAS[0] : CATEGORY_DESPESAS[0]),
+    formaPagamento: despesaExistente?.formaPagamento ?? PaymentMethod.dinheiro,
+    data: despesaExistente?.data ?? new Date().toISOString().split('T')[0],
+    cartaoId: despesaExistente?.cartaoId,
+    observacao: despesaExistente?.observacao ?? '',
+  };
+
+  const formularioFoiAlterado =
+    estabelecimento !== valoresIniciais.estabelecimento ||
+    valorCentavos !== valoresIniciais.valorCentavos ||
+    categoria !== valoresIniciais.categoria ||
+    formaPagamento !== valoresIniciais.formaPagamento ||
+    data !== valoresIniciais.data ||
+    cartaoId !== valoresIniciais.cartaoId ||
+    observacao !== valoresIniciais.observacao ||
+    arquivoCupom !== null;
 
   const selecionarCupom = async (file: File | undefined) => {
     if (!file) return;
@@ -198,6 +220,19 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
       console.error(`Erro ao editar ${isReceita ? 'receita' : 'despesa'}:`, e);
       setErro(t(isReceita ? 'Erro ao salvar receita' : 'Erro ao editar despesa'));
     }
+  };
+
+  const handleCancelar = () => {
+    if (formularioFoiAlterado) {
+      setConfirmacaoDescarteOpen(true);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const confirmarDescarte = () => {
+    setConfirmacaoDescarteOpen(false);
+    navigate('/');
   };
 
   return (
@@ -453,7 +488,7 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
           <div className="flex gap-3 pt-2 md:col-span-2 md:justify-end">
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={handleCancelar}
               className="flex-1 py-2.5 rounded-lg bg-[var(--tema-input)] border border-[var(--tema-border)] hover:bg-[var(--tema-surface-elevado)] text-sm font-medium text-[var(--tema-text-primary)]"
             >
               {t('Cancelar')}
@@ -471,6 +506,14 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
             </button>
           </div>
         </form>
+
+        {confirmacaoDescarteOpen && (
+          <ConfirmDialog
+            isOpen={confirmacaoDescarteOpen}
+            onConfirm={confirmarDescarte}
+            onCancel={() => setConfirmacaoDescarteOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

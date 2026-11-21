@@ -340,7 +340,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <h2 id="delete-account-title" className="delete-account-title text-xl font-semibold text-rose-200">{t('Apagar conta')}</h2>
             <p className="delete-account-copy mt-3 text-sm leading-relaxed text-stone-300">
               {t(supabaseConfigured
-                ? 'Sua sessão e identidade serão removidas agora. Os dados remotos ficarão guardados por 30 dias e poderão ser restaurados se você criar uma conta novamente com este e-mail.'
+                ? 'Sua sessão e identidade serão removidas agora. Os dados remotos ficarão guardados por 30 dias e poderão ser restaurados se você criar uma conta novamente com este e-mail. Caso contrário, seus dados serão permanentemente deletados.'
                 : 'Todos os dados salvos neste navegador serão apagados permanentemente.')}
             </p>
             <label htmlFor="delete-account-confirm" className="delete-account-copy mt-5 block text-sm text-stone-300">

@@ -69,7 +69,7 @@ const traducoesEn: Record<string, string> = {
   'Arquivo com linhas demais para importar. Divida o CSV em partes menores.': 'Too many rows to import. Split the CSV into smaller files.',
   'Sair da conta': 'Sign out',
   'Apagar conta': 'Delete account',
-  'Sua sessão e identidade serão removidas agora. Os dados remotos ficarão guardados por 30 dias e poderão ser restaurados se você criar uma conta novamente com este e-mail.': 'Your session and sign-in identity will be removed now. Remote data will be kept for 30 days and can be restored if you create a new account with this email.',
+  'Sua sessão e identidade serão removidas agora. Os dados remotos ficarão guardados por 30 dias e poderão ser restaurados se você criar uma conta novamente com este e-mail. Caso contrário, seus dados serão permanentemente deletados.': 'Your session and sign-in identity will be removed now. Remote data will be kept for 30 days and can be restored if you create a new account with this email. Otherwise, your data will be permanently deleted.',
   'Todos os dados salvos neste navegador serão apagados permanentemente.': 'All data saved in this browser will be permanently erased.',
   'Digite APAGAR para confirmar': 'Type DELETE to confirm',
   'APAGAR': 'DELETE',

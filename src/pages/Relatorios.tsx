@@ -14,7 +14,7 @@ import {
 import { formatMoney, monthYear, dayMonth } from '../utils/format';
 import { BottomNav } from '../components/BottomNav';
 import { useI18n } from '../utils/i18n';
-import { localAiService } from '../services/local-ai';
+import { iaReportService, type IAProviderName } from '../services/ia-report';
 import { PAYMENT_METHOD_LABELS, type PaymentMethod } from '../types/models';
 
 type Periodo = 'month' | '30days' | 'year' | 'custom';
@@ -42,9 +42,11 @@ function moverDataISO(isoDate: string, dias: number): string {
 export function Relatorios() {
   const { idioma, t } = useI18n();
   const { despesas, meses, definirMesGastos } = useMangoStore();
-  const [relatorioSimulado, setRelatorioSimulado] = useState<string | null>(null);
+  const [relatorio, setRelatorio] = useState<string | null>(null);
   const [erroRelatorio, setErroRelatorio] = useState<string | null>(null);
   const [gerandoRelatorio, setGerandoRelatorio] = useState(false);
+  const [progressoModelo, setProgressoModelo] = useState<number | null>(null);
+  const [provedorRelatorio, setProvedorRelatorio] = useState<IAProviderName | null>(null);
   const mesAtual = meses.gastos;
   const [periodo, setPeriodo] = useState<Periodo>('month');
   const [periodoOffset, setPeriodoOffset] = useState(0);
@@ -72,6 +74,7 @@ export function Relatorios() {
           ? dataISO(hoje)
           : `${hoje.getFullYear() + periodoOffset}-12-31`
       : fimCustom;
+
   const despesasPeriodo = useMemo(
     () => despesas.filter((e) => e.data >= inicioPeriodo && e.data <= fimPeriodo),
     [despesas, inicioPeriodo, fimPeriodo],
@@ -173,8 +176,11 @@ export function Relatorios() {
     setPeriodoOffset((offset) => offset + delta);
   };
 
-  const gerarRelatorioSimulado = async () => {
+  const gerarRelatorio = async () => {
     setErroRelatorio(null);
+    setRelatorio(null);
+    setProvedorRelatorio(null);
+    setProgressoModelo(null);
     setGerandoRelatorio(true);
     try {
       const maiorCategoria = CATEGORY_DESPESAS
@@ -184,21 +190,68 @@ export function Relatorios() {
         }))
         .filter((categoria) => categoria.cents > 0)
         .sort((a, b) => b.cents - a.cents)[0];
-      const resultado = await localAiService.generateReport({
+
+      const categoriaBreakdown = CATEGORY_DESPESAS
+        .map((categoria) => ({
+          name: t(CATEGORY_LABELS[categoria]),
+          cents: groupByCategory[categoria] ?? 0,
+        }))
+        .filter((categoria) => categoria.cents > 0)
+        .sort((a, b) => b.cents - a.cents);
+
+      const pagamentoBreakdown = Object.entries(gruposPagamento)
+        .map(([forma, valor]) => ({
+          name: t(PAYMENT_METHOD_LABELS[forma as PaymentMethod]),
+          cents: valor,
+        }))
+        .filter((item) => item.cents > 0)
+        .sort((a, b) => b.cents - a.cents);
+
+      const dailyBreakdown = Object.entries(groupByDay)
+        .map(([date, cents]) => ({ date, cents, type: 'despesa' as const }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      // Período anterior para comparação
+      const inicioData = new Date(`${inicioPeriodo}T12:00:00`);
+      const fimData = new Date(`${fimPeriodo}T12:00:00`);
+      const periodoDias = Math.floor((fimData.getTime() - inicioData.getTime()) / 86_400_000) + 1;
+      const inicioAnterior = moverDataISO(inicioPeriodo, -periodoDias);
+      const fimAnterior = moverDataISO(inicioPeriodo, -1);
+      const despesasAnterior = despesas.filter(
+        (e) => e.data >= inicioAnterior && e.data <= fimAnterior,
+      );
+      const previousPeriod = {
+        expensesCents: despesasAnterior.reduce(
+          (acc, e) => (CATEGORY_RECEITAS.includes(e.categoria) ? acc : acc + e.valorCentavos),
+          0,
+        ),
+        incomeCents: despesasAnterior.reduce(
+          (acc, e) => (CATEGORY_RECEITAS.includes(e.categoria) ? acc + e.valorCentavos : acc),
+          0,
+        ),
+      };
+
+      const resultado = await iaReportService.generateReport({
         locale: idioma,
         periodLabel: `${dataLegivel(inicioPeriodo, idioma)} – ${dataLegivel(fimPeriodo, idioma)}`,
         expensesCents: totalDespesas,
         incomeCents: totalReceitas,
         entryCount: despesasPeriodo.length,
         leadingCategory: maiorCategoria,
-      });
-      setRelatorioSimulado(resultado.text);
+        categoryBreakdown: categoriaBreakdown,
+        paymentBreakdown: pagamentoBreakdown,
+        dailyData: dailyBreakdown,
+        previousPeriod,
+      }, setProgressoModelo);
+      setRelatorio(resultado.text);
+      setProvedorRelatorio(resultado.provider);
     } catch (error) {
       setErroRelatorio(
         error instanceof Error ? error.message : String(error),
       );
     } finally {
       setGerandoRelatorio(false);
+      setProgressoModelo(null);
     }
   };
 
@@ -287,22 +340,52 @@ export function Relatorios() {
           </div>
         )}
 
-        <button
-          onClick={gerarRelatorioSimulado}
-          disabled={gerandoRelatorio}
-          className="mx-auto mb-7 flex min-h-14 w-full max-w-4xl items-center justify-center gap-3 rounded-2xl bg-[var(--tema-accent)] px-4 text-center text-sm font-semibold text-white shadow-[0_8px_24px_color-mix(in_srgb,var(--tema-accent)_24%,transparent)] transition hover:brightness-110 disabled:opacity-60 sm:text-base lg:mb-8"
-        >
-          <Sparkles className="h-5 w-5" />
-          {gerandoRelatorio ? t('Gerando…') : t('Gerar relatório mensal por I.A.')}
-        </button>
+        <div className="mx-auto mb-7 w-full max-w-4xl">
+          <button
+            onClick={gerarRelatorio}
+            disabled={gerandoRelatorio}
+            className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--tema-accent)] px-4 text-center text-sm font-semibold text-white shadow-[0_8px_24px_color-mix(in_srgb,var(--tema-accent)_24%,transparent)] transition hover:brightness-110 disabled:opacity-60 sm:text-base"
+          >
+            <Sparkles className="h-5 w-5" />
+            {gerandoRelatorio ? t('Gerando relatório…') : t('Gerar relatório por I.A.')}
+          </button>
+          <p className="mt-2 text-center text-xs leading-relaxed text-stone-400">
+            {t('Modelo local LaMini-Flan-T5 (77M parâmetros). A análise é processada neste dispositivo; no primeiro uso, os pesos são baixados. Seus dados financeiros não são enviados ao provedor de IA.')}
+          </p>
+          {gerandoRelatorio && progressoModelo !== null && (
+            <div className="mt-3" role="status" aria-live="polite">
+              <p className="mb-1 text-center text-xs text-stone-300">
+                {t('Carregando modelo local…')} {progressoModelo}%
+              </p>
+              <div
+                className="h-1.5 overflow-hidden rounded-full bg-white/10"
+                role="progressbar"
+                aria-label={t('Carregando modelo local…')}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progressoModelo}
+              >
+                <div
+                  className="h-full rounded-full bg-[var(--tema-accent)] transition-[width]"
+                  style={{ width: `${progressoModelo}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
-        {(erroRelatorio || relatorioSimulado) && (
+        {(erroRelatorio || relatorio) && (
           <section className="mx-auto mb-6 max-w-4xl rounded-2xl border border-white/[0.08] bg-[var(--tema-surface)] p-4">
-            <p className="text-sm text-stone-300">
-              {erroRelatorio ?? t('Resumo simulado; nenhum modelo de IA é executado.')}
+            <p className="text-sm text-stone-300" role={erroRelatorio ? 'alert' : undefined}>
+              {erroRelatorio
+                ? t('Não foi possível gerar o relatório por I.A.')
+                : provedorRelatorio === 'transformersjs'
+                  ? t('Gerado com modelo local (transformers.js)')
+                  : ''}
             </p>
-            {relatorioSimulado && (
-              <pre className="mt-3 whitespace-pre-wrap text-xs leading-relaxed text-stone-400">{relatorioSimulado}</pre>
+            {erroRelatorio && <p className="mt-1 text-sm text-rose-300">{erroRelatorio}</p>}
+            {relatorio && (
+              <pre className="mt-3 whitespace-pre-wrap text-xs leading-relaxed text-stone-400">{relatorio}</pre>
             )}
           </section>
         )}

@@ -28,9 +28,11 @@ export function Diagnostico() {
       label: t('IA local'),
       value: statusIa.available
         ? t('Disponível')
-        : statusIa.simulationAvailable
-          ? t('Simulação disponível; modelo não executado')
-          : t('Indisponível no navegador'),
+        : statusIa.loading
+          ? t('Carregando modelo local…')
+          : statusIa.reason === 'model-error'
+            ? t('Modelo local indisponível')
+            : t('Modelo local ainda não carregado'),
     },
     {
       label: t('Armazenamento'),

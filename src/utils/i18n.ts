@@ -220,6 +220,14 @@ const traducoesEn: Record<string, string> = {
   'Resumo simulado; nenhum modelo de IA é executado.': 'Simulated summary; no AI model is run.',
   'Gerar simulação': 'Generate sample',
   'Gerando…': 'Generating…',
+  'Gerar relatório por I.A.': 'Generate AI report',
+  'Gerando relatório…': 'Generating report…',
+  'Gerado com modelo local (transformers.js)': 'Generated with a local model (transformers.js)',
+  'Modelo local LaMini-Flan-T5 (77M parâmetros). A análise é processada neste dispositivo; no primeiro uso, os pesos são baixados. Seus dados financeiros não são enviados ao provedor de IA.': 'Local LaMini-Flan-T5 model (77M parameters). Analysis runs on this device; model weights are downloaded on first use. Your financial data is not sent to an AI provider.',
+  'Carregando modelo local…': 'Loading local model…',
+  'Modelo local ainda não carregado': 'Local model not loaded yet',
+  'Modelo local indisponível': 'Local model unavailable',
+  'Não foi possível gerar o relatório por I.A.': 'Could not generate the AI report',
   'Nenhum registro de falha. O log local (falhas.jsonl) é usado no app Flutter; no navegador, erros são exibidos no console.': 'No errors recorded. The local log (falhas.jsonl) is used by the Flutter app; in the browser, errors are shown in the console.',
   'Carregando…': 'Loading…',
   'Alimentação': 'Food',
@@ -258,6 +266,12 @@ const traducoesEn: Record<string, string> = {
   'Descartar alterações não salvas?': 'Discard unsaved changes?',
   'As informações preenchidas no formulário serão perdidas. Deseja realmente cancelar?': 'The information entered in the form will be lost. Do you really want to cancel?',
   'OK': 'OK',
+  'Modelo de I.A. ainda carregando. Tente novamente em instantes.': 'AI model still loading. Please try again in a moment.',
+  'Modelo de I.A. não disponível. Usando resumo baseado em regras.': 'AI model unavailable. Using rule-based summary.',
+  'I.A. Local': 'Local A.I.',
+  'Carregando modelo de I.A…': 'Loading AI model…',
+  'Modelo de I.A. carregado': 'AI model loaded',
+  'Modelo de I.A. indisponível': 'AI model unavailable',
 };
 
 export function traduzir(texto: string, idioma: Idioma): string {

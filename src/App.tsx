@@ -21,6 +21,8 @@ import { SupabaseAuthGate } from './components/SupabaseAuthGate';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AuthCallback } from './pages/AuthCallback';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 
 function App() {
   const { perfil, idioma } = useMangoStore();
@@ -48,6 +50,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/splash" element={<Splash />} />
             <Route path="/first-run" element={<FirstRun />} />
             <Route path="/landing" element={<Landing />} />

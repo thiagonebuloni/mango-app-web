@@ -5,7 +5,7 @@
 1. Copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from the Supabase project's API settings. Use the `sb_publishable_...` key; do not use the deprecated `anon` key or put a secret/service-role key in a `VITE_` variable.
 2. In Supabase Auth, enable Email/password sign-ups and configure email confirmation as desired.
 3. To enable Google sign-in, configure the Google OAuth client ID and secret. Add `https://<project-ref>.supabase.co/auth/v1/callback` to the Google OAuth authorized redirect URIs.
-4. Add the app's local and deployed origins to Supabase Auth's allowed redirect URLs.
+4. In Supabase Auth → URL Configuration, keep Site URL set to the app origin (for example, `https://mango-app-web-gamma.vercel.app`) and add the full reset callback URL to Redirect URLs (for example, `https://mango-app-web-gamma.vercel.app/auth/reset-password`). Add the equivalent callback URLs for local development and any other deployed host. Supabase falls back to Site URL when the requested redirect is not allowlisted, so allowing only the origin may still send recovery links to `/`.
 
 The developer-login shortcut is included only in Vite development mode (`import.meta.env.DEV`). It bypasses the app's login gate for local development and uses local browser data only; it is not an authenticated Supabase session and is not included in production builds.
 

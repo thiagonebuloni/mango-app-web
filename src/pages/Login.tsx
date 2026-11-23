@@ -103,6 +103,11 @@ export function Login() {
               className="mt-2 min-h-12 w-full rounded-xl border border-[var(--tema-border)] bg-[var(--tema-input)] px-4 text-base text-[var(--tema-text-primary)] outline-none transition focus:border-[var(--tema-accent)]"
             />
           </label>
+          <div className="-mt-2 flex justify-end">
+            <Link to="/forgot-password" className="text-sm font-semibold text-[var(--tema-accent)] hover:underline">
+            {t('Esqueceu a senha?')}
+            </Link>
+          </div>
           <button
             type="submit"
             disabled={loading || !supabase}

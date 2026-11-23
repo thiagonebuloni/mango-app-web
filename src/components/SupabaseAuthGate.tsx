@@ -16,6 +16,7 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [connectedUserId, setConnectedUserId] = useState<string | null>(null);
+  const [passwordRecoveryPending, setPasswordRecoveryPending] = useState(false);
   const [authLoading, setAuthLoading] = useState(supabaseConfigured);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
@@ -27,11 +28,16 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
   useEffect(() => {
     if (!supabase) return;
     let active = true;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (active) {
         setSession(nextSession);
         setSyncError(null);
         if (!nextSession) setConnectedUserId(null);
+        if (event === 'PASSWORD_RECOVERY' && nextSession) {
+          setPasswordRecoveryPending(true);
+        } else if (event === 'USER_UPDATED' || event === 'SIGNED_OUT') {
+          setPasswordRecoveryPending(false);
+        }
       }
     });
 
@@ -96,12 +102,22 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
       && location.state !== null
       && 'invalidAuthLink' in location.state
       && location.state.invalidAuthLink === true);
+  const isAuthRecoveryRoute = location.pathname === '/auth/reset-password';
 
-  if (hasInvalidAuthLink && location.pathname !== '/login' && location.pathname !== '/auth/callback') {
+  if (
+    hasInvalidAuthLink
+    && location.pathname !== '/login'
+    && location.pathname !== '/auth/callback'
+    && !isAuthRecoveryRoute
+  ) {
     return <Navigate to="/login" replace state={{ invalidAuthLink: true }} />;
   }
 
-  if (authLoading || (sessionUserId && connectedUserId !== sessionUserId && !syncError)) {
+  if (passwordRecoveryPending && !isAuthRecoveryRoute) {
+    return <Navigate to="/auth/reset-password" replace />;
+  }
+
+  if (authLoading || (!isAuthRecoveryRoute && sessionUserId && connectedUserId !== sessionUserId && !syncError)) {
     return (
       <main className="grid min-h-screen place-items-center bg-background px-6 text-foreground">
         <p className="text-sm text-[var(--tema-text-secondary)]">{t('Conectando sua conta…')}</p>
@@ -109,9 +125,13 @@ export function SupabaseAuthGate({ children }: SupabaseAuthGateProps) {
     );
   }
 
-  if (location.pathname === '/auth/callback') return children;
+  if (location.pathname === '/auth/callback' || isAuthRecoveryRoute) return children;
 
-  if (location.pathname === '/login' || location.pathname === '/register') {
+  if (
+    location.pathname === '/login'
+    || location.pathname === '/register'
+    || location.pathname === '/forgot-password'
+  ) {
     return session && !hasInvalidAuthLink ? <Navigate to="/" replace /> : children;
   }
 

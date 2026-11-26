@@ -23,6 +23,20 @@ interface ExpenseTileProps {
   onDelete: () => void;
 }
 
+type ParcelInfo = { nome: string; parcelaAtual: number; totalParcelas: number };
+
+// Extrai info de parcela do nome do estabelecimento (ex.: "Pres Thaynan 3/6")
+// Usado como fallback para dados salvos antes dos campos de parcela existirem no banco.
+function parseParcelInfo(estabelecimento: string): ParcelInfo | null {
+  const match = estabelecimento.trim().match(/^(.+?)\s*(\d+)\/(\d+)\s*$/);
+  if (!match) return null;
+  return {
+    nome: match[1].trim(),
+    parcelaAtual: parseInt(match[2], 10),
+    totalParcelas: parseInt(match[3], 10),
+  };
+}
+
 const CATEGORY_APPEARANCE: Record<Category, { icon: LucideIcon; color: string; background: string }> = {
   alimentacao: { icon: Utensils, color: '#b66b2b', background: '#f5e4d4' },
   transporte: { icon: CarFront, color: '#3783d6', background: '#dceafa' },
@@ -47,17 +61,27 @@ export function ExpenseTile({ expense, onTap, onDelete }: ExpenseTileProps) {
   const appearance = CATEGORY_APPEARANCE[expense.categoria];
   const Icon = appearance.icon;
 
+  // Título: usa Observação se houver, senão o nome do estabelecimento (sem sufixo de parcela)
+  const parcelInfo = parseParcelInfo(expense.estabelecimento);
+  const nomeSemParcela = parcelInfo?.nome ?? expense.estabelecimento;
+  const tituloExibicao = expense.observacao ?? nomeSemParcela;
+
+  // Parcela: usa campos salvos, senão deriva do nome do estabelecimento
+  const parcelaAtual = expense.parcelaAtual ?? parcelInfo?.parcelaAtual ?? 1;
+  const totalParcelas = expense.totalParcelas ?? parcelInfo?.totalParcelas ?? 1;
+  const isParcelado = (expense.parcelado ?? totalParcelas > 1) && parcelaAtual > 0;
+
   return (
     <article className="group flex min-w-0 items-center gap-3 border-b border-[var(--tema-border)]/55 py-2.5 sm:gap-4 sm:py-3">
       <span
         className="grid h-10 w-10 shrink-0 place-items-center rounded-full sm:h-11 sm:w-11"
         style={{
           color: appearance.color,
-          backgroundColor: `color-mix(in srgb, ${appearance.background} 78%, var(--tema-surface))`,
+          backgroundColor: `color-mix(in srgb, ${appearance.color} 20%, var(--tema-surface))`,
         }}
         aria-hidden="true"
       >
-        <Icon className="h-[1.15rem] w-[1.15rem]" strokeWidth={2.2} />
+        <Icon className="h-[1.3rem] w-[1.3rem]" strokeWidth={2.5} />
       </span>
       <button
         type="button"
@@ -66,15 +90,15 @@ export function ExpenseTile({ expense, onTap, onDelete }: ExpenseTileProps) {
       >
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-medium leading-5 text-[var(--tema-text-primary)]">
-            {expense.estabelecimento}
+            {tituloExibicao}
           </span>
           <span className="mt-0.5 block truncate text-[13px] leading-4 text-[var(--tema-text-secondary)]">
             {dayMonth(expense.data, idioma)} <span aria-hidden="true">·</span> {t(CATEGORY_LABELS[expense.categoria])}
           </span>
         </span>
-        {expense.parcelado && (
+        {isParcelado && (
           <span className="shrink-0 rounded-full bg-[var(--tema-accent)]/10 px-2 py-0.5 text-[11px] font-semibold leading-4 text-[var(--tema-accent)]">
-            {expense.parcelaAtual}/{expense.totalParcelas}
+            {parcelaAtual}/{totalParcelas}
           </span>
         )}
       </button>
@@ -84,7 +108,7 @@ export function ExpenseTile({ expense, onTap, onDelete }: ExpenseTileProps) {
       <button
         type="button"
         onClick={onDelete}
-        aria-label={`${t('Excluir lançamento')}: ${expense.estabelecimento}`}
+        aria-label={`${t('Excluir lançamento')}: ${tituloExibicao}`}
         className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[var(--tema-text-secondary)] opacity-35 transition hover:bg-rose-500/10 hover:text-rose-600 hover:opacity-100 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-70"
       >
         <span className="sr-only">{t('Excluir lançamento')}</span>

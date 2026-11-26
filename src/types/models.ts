@@ -155,6 +155,10 @@ export interface ExpenseInput {
   cartaoId?: number;
   fotoPath?: string;
   observacao?: string;
+  parcelado?: boolean;
+  parcelaAtual?: int;
+  totalParcelas?: int;
+  grupoParcela?: string;
 }
 
 // ---------------- Cartão de crédito ----------------

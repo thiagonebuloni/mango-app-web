@@ -173,10 +173,14 @@ export function DespesaForm({ tipoInicial = 'despesa' }: DespesaFormProps) {
             data: p.data,
             cartaoId,
             observacao,
+            parcelado: true,
+            parcelaAtual: p.parcelaAtual,
+            totalParcelas: p.totalParcelas,
+            grupoParcela: p.grupoParcela,
           });
         }
       } else {
-        await adicionarDespesa(input);
+        await adicionarDespesa({ ...input, parcelado: false });
       }
 
       setEnviando(false);

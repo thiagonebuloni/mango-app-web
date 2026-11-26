@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Sidebar } from './components/Sidebar';
-import { SidebarMenuContext } from './components/SidebarMenuContext';
 import { Home } from './pages/Home';
 import { Splash } from './pages/Splash';
 import { FirstRun } from './pages/FirstRun';
@@ -17,16 +15,17 @@ import { Perfil } from './pages/Perfil';
 import { aplicarTema } from './utils/theme';
 import type { TemaCor } from './types/models';
 import { useMangoStore } from './store/useStore';
-import { SupabaseAuthGate } from './components/SupabaseAuthGate';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AuthCallback } from './pages/AuthCallback';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
+import { License } from './pages/License';
+import { TermosDeServico } from './pages/TermosDeServico';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   const { perfil, idioma } = useMangoStore();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = idioma;
@@ -43,33 +42,35 @@ function App() {
 
   return (
     <BrowserRouter>
-      <SupabaseAuthGate>
-        <SidebarMenuContext.Provider value={() => setSidebarOpen(true)}>
-          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
-            <Route path="/splash" element={<Splash />} />
-            <Route path="/first-run" element={<FirstRun />} />
-            <Route path="/landing" element={<Landing />} />
-            <Route path="/lock" element={<LockScreen onUnlock={() => {}} />} />
-            <Route path="/despesa/nova" element={<DespesaForm />} />
-            <Route path="/receita/nova" element={<DespesaForm tipoInicial="receita" />} />
-            <Route path="/despesa/editar/:id" element={<DespesaForm />} />
-            <Route path="/relatorios" element={<Relatorios />} />
-            <Route path="/cartoes" element={<Cartoes />} />
-            <Route path="/cartao/:id" element={<CartaoDetalhe />} />
-            <Route path="/cartao/nova" element={<CartaoForm />} />
-            <Route path="/cartao/editar/:id" element={<CartaoForm />} />
-            <Route path="/diagnostico" element={<Diagnostico />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="/" element={<Home />} />
-          </Routes>
-        </SidebarMenuContext.Provider>
-      </SupabaseAuthGate>
+      <Routes>
+        {/* Rotas públicas (sem autenticação) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        <Route path="/license" element={<License />} />
+        <Route path="/termos-de-servico" element={<TermosDeServico />} />
+
+        {/* Rotas protegidas (requerem autenticação) */}
+        <Route path="/" element={<ProtectedRoute />}>
+          <Route index element={<Home />} />
+          <Route path="splash" element={<Splash />} />
+          <Route path="first-run" element={<FirstRun />} />
+          <Route path="landing" element={<Landing />} />
+          <Route path="lock" element={<LockScreen onUnlock={() => {}} />} />
+          <Route path="despesa/nova" element={<DespesaForm />} />
+          <Route path="receita/nova" element={<DespesaForm tipoInicial="receita" />} />
+          <Route path="despesa/editar/:id" element={<DespesaForm />} />
+          <Route path="relatorios" element={<Relatorios />} />
+          <Route path="cartoes" element={<Cartoes />} />
+          <Route path="cartao/:id" element={<CartaoDetalhe />} />
+          <Route path="cartao/nova" element={<CartaoForm />} />
+          <Route path="cartao/editar/:id" element={<CartaoForm />} />
+          <Route path="diagnostico" element={<Diagnostico />} />
+          <Route path="perfil" element={<Perfil />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }

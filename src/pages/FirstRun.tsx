@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useMangoStore } from '../store/useStore';
 import { Camera, Check, CheckCircle2, Globe, Moon, Palette, Sun, User } from 'lucide-react';
 import { aplicarTema, CORES_FUNDO_PASTEL, corParaTemaCor } from '../utils/theme';
+import { resizeImage } from '../utils/image';
 import { useI18n } from '../utils/i18n';
 import { errorMessage } from '../services/error-message';
+import { AvatarResizeModal } from '../components/AvatarResizeModal';
 
 const CORES = CORES_FUNDO_PASTEL;
 
@@ -23,6 +25,8 @@ export function FirstRun() {
   const [avatar, setAvatar] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
+  const [resizeModalOpen, setResizeModalOpen] = useState<boolean>(false);
+  const [imageParaRecortar, setImageParaRecortar] = useState<string>('');
 
   const temaCor = corParaTemaCor(corSelecionada);
   const avatarEhImagem = avatar.length > 0 && !/^[\p{Emoji}\s]+$/u.test(avatar);
@@ -68,7 +72,14 @@ export function FirstRun() {
             <div className="relative mx-auto h-32 w-32">
               <button
                 type="button"
-                onClick={() => avatarInputRef.current?.click()}
+                onClick={() => {
+                  if (avatarEhImagem) {
+                    setImageParaRecortar(avatar);
+                    setResizeModalOpen(true);
+                  } else {
+                    avatarInputRef.current?.click();
+                  }
+                }}
                 className="grid h-full w-full place-items-center overflow-hidden rounded-full border-[5px] border-[#151515] bg-[var(--tema-surface-elevado)] text-6xl shadow-xl"
                 aria-label={t('Trocar avatar')}
               >
@@ -98,11 +109,9 @@ export function FirstRun() {
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 if (!file) return;
-                const reader = new FileReader();
-                reader.onload = () => {
-                  if (typeof reader.result === 'string') setAvatar(reader.result.split(',')[1] ?? '');
-                };
-                reader.readAsDataURL(file);
+                resizeImage(file).then((base64) => {
+                  setAvatar(base64);
+                });
                 event.target.value = '';
               }}
               className="hidden"
@@ -254,6 +263,23 @@ export function FirstRun() {
           </div>
         </div>
       </div>
+
+      {resizeModalOpen && (
+        <AvatarResizeModal
+          isOpen={resizeModalOpen}
+          imageSrc={imageParaRecortar}
+          onConfirm={(base64) => {
+            setAvatar(base64);
+            setResizeModalOpen(false);
+            setImageParaRecortar('');
+          }}
+          onCancel={() => {
+            setResizeModalOpen(false);
+            setImageParaRecortar('');
+          }}
+        />
+      )}
+
     </div>
   );
 }
